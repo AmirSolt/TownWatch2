@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"bytes"
 	"net/http"
 	"townwatch/app"
+	"townwatch/domains/auth/authtemplates"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,20 +22,31 @@ func (auth *Auth) registerAuthRoutes() {
 	// auth.joinVerify()
 
 	if !auth.app.Env.IS_PROD {
-		auth.registerTestJoin()
+		// auth.registerTestJoin()
 	}
 }
 
 func (auth *Auth) registerJoinRoute() {
 
+	// auth.app.Engine.GET("/join", func(c *gin.Context) {
+	// 	c.HTML(http.StatusOK, "join.tmpl", gin.H{
+	// 		"data": joinLoad{
+	// 			BasicPageLoad: app.BasicPageLoad{
+	// 				Title: "Join",
+	// 			},
+	// 		},
+	// 	})
+
+	// })
+
 	auth.app.Engine.GET("/join", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "join.tmpl", gin.H{
-			"data": joinLoad{
-				BasicPageLoad: app.BasicPageLoad{
-					Title: "Join",
-				},
-			},
-		})
+
+		var buf bytes.Buffer
+		authtemplates.Hello("Amir").Render(c, &buf)
+
+		// err := templ.Render(&buf, authtemplates.Hello("Amir"))
+
+		c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
 
 	})
 }
@@ -53,21 +66,21 @@ func (auth *Auth) registerJoinRoute() {
 // 	})
 // }
 
-func (auth *Auth) registerTestJoin() {
+// func (auth *Auth) registerTestJoin() {
 
-	auth.app.Engine.POST("/join/test/singin", func(c *gin.Context) {
+// 	auth.app.Engine.POST("/join/test/singin", func(c *gin.Context) {
 
-		c.HTML(http.StatusOK, "verify.tmpl", gin.H{
-			"data": "",
-		})
+// 		c.HTML(http.StatusOK, "verify.tmpl", gin.H{
+// 			"data": "",
+// 		})
 
-	})
+// 	})
 
-	auth.app.Engine.POST("/join/test/singout", func(c *gin.Context) {
+// 	auth.app.Engine.POST("/join/test/singout", func(c *gin.Context) {
 
-		c.HTML(http.StatusOK, "verify.tmpl", gin.H{
-			"data": "",
-		})
+// 		c.HTML(http.StatusOK, "verify.tmpl", gin.H{
+// 			"data": "",
+// 		})
 
-	})
-}
+// 	})
+// }

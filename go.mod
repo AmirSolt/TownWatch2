@@ -3,6 +3,7 @@ module townwatch
 go 1.21.6
 
 require (
+	github.com/a-h/templ v0.2.543
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.18.0
 	github.com/jackc/pgx/v5 v5.5.3
@@ -30,7 +31,7 @@ require (
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
