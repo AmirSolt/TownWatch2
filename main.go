@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"townwatch/app"
 	"townwatch/domains/auth"
 )
@@ -15,9 +16,9 @@ func main() {
 	auth.LoadAuth(&app)
 
 	fmt.Println("=======")
-	fmt.Println("http://localhost:3000")
+	fmt.Println("http://localhost:8080")
 	fmt.Println("=======")
 
-	app.Engine.Run()
+	http.ListenAndServe(":8080", nil)
 	app.Kill()
 }

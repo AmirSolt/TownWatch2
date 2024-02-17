@@ -1,21 +1,11 @@
 package auth
 
 import (
-	"bytes"
 	"net/http"
-	"townwatch/app"
 	"townwatch/domains/auth/authtemplates"
 
-	"github.com/gin-gonic/gin"
+	"github.com/a-h/templ"
 )
-
-type joinLoad struct {
-	app.BasicPageLoad
-}
-
-type verifyLoad struct {
-	app.BasicPageLoad
-}
 
 func (auth *Auth) registerAuthRoutes() {
 	auth.registerJoinRoute()
@@ -39,16 +29,18 @@ func (auth *Auth) registerJoinRoute() {
 
 	// })
 
-	auth.app.Engine.GET("/join", func(c *gin.Context) {
+	http.Handle("/join", templ.Handler(authtemplates.JoinPage()))
 
-		var buf bytes.Buffer
-		authtemplates.Hello("Amir").Render(c, &buf)
+	// auth.app.Engine.GET("/join", func(c *gin.Context) {
 
-		// err := templ.Render(&buf, authtemplates.Hello("Amir"))
+	// 	var buf bytes.Buffer
+	// 	authtemplates.Hello("Amir").Render(c, &buf)
 
-		c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+	// 	// err := templ.Render(&buf, authtemplates.Hello("Amir"))
 
-	})
+	// 	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+
+	// })
 }
 
 // func (auth *Auth) joinVerify() {
