@@ -1,0 +1,42 @@
+{{define "header.tmpl" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.data.Title}}</title>
+</head>
+<body>
+
+    
+    <header>
+        <nav>
+
+            {{template "brand.tmpl" }}
+
+            <div>
+                <a href="/pricing">
+                    Pricing
+                </a>
+
+                {{if .data.User}}
+                    <a href="/user">
+                        User
+                    </a>
+                {{else }}
+                    <a href="/join">
+                        Login/Register
+                    </a>
+                {{end}}
+            </div>
+
+        </nav>
+    </header>
+
+
+    <br>
+    <br>
+    <br>
+    <br>
+    
+{{end}}

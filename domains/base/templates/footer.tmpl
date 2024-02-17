@@ -1,0 +1,25 @@
+{{define "footer.tmpl"}}
+
+
+<br>
+<br>
+<br>
+
+<footer>
+
+
+
+    {{ if not .data.IsProd }}
+
+        {{template "debugGuestButton.tmpl" }}
+        {{template "debugUserButton.tmpl" 1 }}
+        {{template "debugUserButton.tmpl" 2 }}
+
+
+    {{end}}
+
+</footer>
+
+</body>
+</html>
+{{end}}
