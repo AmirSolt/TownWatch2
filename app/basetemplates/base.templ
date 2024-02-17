@@ -16,7 +16,7 @@ templ Brand(){
 	</h1>
 }
 
-templ Header(user interface{}) {
+templ Header(isUser bool) {
 	<header>
 		<nav>
 
@@ -27,7 +27,7 @@ templ Header(user interface{}) {
 					Pricing
 				</a>
 
-				if user {
+				if isUser {
 					<a href="/user">
 						User
 					</a>
