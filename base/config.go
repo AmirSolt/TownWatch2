@@ -1,4 +1,4 @@
-package app
+package base
 
 type Config struct {
 	// TierConfigs map[models.Tier]TierConfig
@@ -11,8 +11,8 @@ type Config struct {
 // 	Amount   int64
 // }
 
-func (app *App) loadConfig() {
-	app.Config = &Config{}
+func (base *Base) loadConfig() {
+	base.Config = &Config{}
 }
 
 // 	// m[models.TierT0] = TierConfig{
@@ -34,5 +34,5 @@ func (app *App) loadConfig() {
 // 	// 	Amount:   10000,
 // 	// }
 
-// 	app.Config = &Config{}
+// 	base.Config = &Config{}
 // }

@@ -1,4 +1,4 @@
-package app
+package base
 
 import (
 	"bytes"
@@ -20,9 +20,9 @@ type EmailPayload struct {
 	ContentHTML string `json:"contentHTML"`
 }
 
-func (app *App) SendEmail(toEmail, toName, fromName, subject, content string) error {
+func (base *Base) SendEmail(toEmail, toName, fromName, subject, content string) error {
 	payload := EmailPayload{
-		ApiKey:      app.EMAIL_CF_WORKER_API_KEY,
+		ApiKey:      base.EMAIL_CF_WORKER_API_KEY,
 		ToEmail:     toEmail,
 		ToName:      toName,
 		FromName:    fromName,
@@ -35,12 +35,12 @@ func (app *App) SendEmail(toEmail, toName, fromName, subject, content string) er
 		return fmt.Errorf("failed to encode payload: %w", err)
 	}
 
-	encrypted, err := jwe.Encrypt(payloadBytes, jwe.WithKey(jwa.A128GCM, app.EMAIL_SECRET_KEY))
+	encrypted, err := jwe.Encrypt(payloadBytes, jwe.WithKey(jwa.A128GCM, base.EMAIL_SECRET_KEY))
 	if err != nil {
 		return fmt.Errorf("failed to encrypt email payload: %w", err)
 	}
 
-	resp, err := http.Post(app.EMAIL_CF_WORKER_URL, "application/json", bytes.NewBuffer(encrypted))
+	resp, err := http.Post(base.EMAIL_CF_WORKER_URL, "application/json", bytes.NewBuffer(encrypted))
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}

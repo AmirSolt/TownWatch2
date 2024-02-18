@@ -1,4 +1,4 @@
-package app
+package base
 
 import (
 	"log"
@@ -26,9 +26,9 @@ type Env struct {
 	JWE_SECRET_KEY string `validate:"required"`
 }
 
-func (app *App) loadEnv() {
+func (base *Base) loadEnv() {
 
-	if err := godotenv.Load(filepath.Join(app.RootDir, ".env")); err != nil {
+	if err := godotenv.Load(filepath.Join(base.RootDir, ".env")); err != nil {
 		log.Fatal("Error .env:", err)
 	}
 
@@ -51,7 +51,7 @@ func (app *App) loadEnv() {
 		log.Fatal("Error .env:", err)
 	}
 
-	app.Env = &env
+	base.Env = &env
 }
 
 func strToBool(s string) bool {

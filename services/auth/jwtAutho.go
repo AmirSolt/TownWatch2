@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"townwatch/domains/auth/authmodels"
+	"townwatch/services/auth/authmodels"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -50,7 +50,7 @@ func (auth *Auth) SetJWTCookie(ginContext *gin.Context, user *authmodels.User) e
 		EXP: time.Now().Add(time.Second * jwtExpirationDurationSeconds).Unix(),
 	}
 
-	jwtEncrypted, err := encryptJWT(jwt, auth.app.JWE_SECRET_KEY)
+	jwtEncrypted, err := encryptJWT(jwt, auth.base.JWE_SECRET_KEY)
 	if err != nil {
 		return fmt.Errorf("jwt authorization failed: %w", err)
 	}
@@ -69,7 +69,7 @@ func removeJWTCookie(ginContext *gin.Context) {
 }
 
 func (auth *Auth) ParseJWT(jwtEncrypted string) (*JWT, error) {
-	jwt, err := dencryptJWT([]byte(jwtEncrypted), auth.app.JWE_SECRET_KEY)
+	jwt, err := dencryptJWT([]byte(jwtEncrypted), auth.base.JWE_SECRET_KEY)
 	if err != nil {
 		return nil, fmt.Errorf("jwt authorization failed: %w", err)
 	}

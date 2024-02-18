@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-	"townwatch/domains/auth/authmodels"
+	"townwatch/services/auth/authmodels"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -139,7 +139,7 @@ func (auth *Auth) createOTP(user *authmodels.User) (*authmodels.Otp, error) {
 
 func (auth *Auth) sendOTPEmail(user *authmodels.User, otp *authmodels.Otp) error {
 	content := "content" + string(otp.ID.Bytes[:])
-	errEmail := auth.app.SendEmail(user.Email, "User", "Town Watch", "Email Verification Link", content)
+	errEmail := auth.base.SendEmail(user.Email, "User", "Town Watch", "Email Verification Link", content)
 	if errEmail != nil {
 		return fmt.Errorf("error OTP email could not be sent: %w", errEmail)
 	}

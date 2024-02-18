@@ -1,4 +1,4 @@
-package app
+package base
 
 import (
 	"context"
@@ -12,19 +12,19 @@ type DB struct {
 	Conn *pgx.Conn
 }
 
-func (app *App) loadDB() {
-	conn, dbErr := pgx.Connect(context.Background(), app.DATABASE_URL)
+func (base *Base) loadDB() {
+	conn, dbErr := pgx.Connect(context.Background(), base.DATABASE_URL)
 	if dbErr != nil {
 		log.Fatalln("Error db:", dbErr)
 	}
 
 	// queries := models.New(conn)
-	app.DB = &DB{
+	base.DB = &DB{
 		Conn: conn,
 		// Queries: queries,
 	}
 }
 
-func (app *App) killDB() {
-	app.Conn.Close(context.Background())
+func (base *Base) killDB() {
+	base.Conn.Close(context.Background())
 }
