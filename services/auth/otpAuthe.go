@@ -4,15 +4,49 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"time"
+	authtemplates "townwatch/base/basetemplates"
 	"townwatch/services/auth/authmodels"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const otpExpirationDurationSeconds = 60 * 5  // 5 minutes
 const otpRetryExpirationDurationSeconds = 10 // 10 sec
+
+// =========================================================
+// Handlers
+
+func (auth *Auth) signinHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var email string
+		err := auth.InitOTP(email)
+		authtemplates.Error(err).Render(r.Context(), w)
+	})
+}
+
+func (auth *Auth) resendVerifHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var email string
+		err := auth.ResendOTP(email)
+		authtemplates.Error(err).Render(r.Context(), w)
+	})
+}
+
+func (auth *Auth) signoutHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Signout(w)
+	})
+}
+
+func (auth *Auth) signinTestHandler() http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	})
+}
+
+// =========================================================
 
 func (auth *Auth) InitOTP(email string) error {
 
@@ -64,7 +98,7 @@ func (auth *Auth) ResendOTP(email string) error {
 	return nil
 }
 
-func (auth *Auth) ValidateOTP(ginContext *gin.Context, otpId string) error {
+func (auth *Auth) ValidateOTP(w http.ResponseWriter, r *http.Request, otpId string) error {
 
 	// Find OTP
 	otp, err := auth.Queries.GetOTP(context.Background(), pgtype.UUID{Bytes: stringToByte16(otpId), Valid: true})
@@ -95,13 +129,13 @@ func (auth *Auth) ValidateOTP(ginContext *gin.Context, otpId string) error {
 		return fmt.Errorf("otp does not match latest user otp: %w", err)
 	}
 
-	auth.SetJWTCookie(ginContext, &user)
+	auth.SetJWTCookie(w, r, &user)
 
 	return nil
 }
 
-func Signout(ginContext *gin.Context) {
-	removeJWTCookie(ginContext)
+func Signout(w http.ResponseWriter) {
+	removeJWTCookie(w)
 }
 
 // =====================================================================

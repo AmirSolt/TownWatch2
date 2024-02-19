@@ -1,12 +1,6 @@
 package authtemplates
 
-templ Head(title string){
-	<head>
-		<meta charset="UTF-8"></meta>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
-		<title>{title}</title>
-	</head>
-}
+
 
 templ Brand(){
 	<h1>
@@ -16,42 +10,9 @@ templ Brand(){
 	</h1>
 }
 
-templ Header(isUser bool) {
-	<header>
-		<nav>
 
-			@Brand()
-
-			<div>
-				<a href="/pricing">
-					Pricing
-				</a>
-
-				if isUser {
-					<a href="/user">
-						User
-					</a>
-				} else {
-					<a href="/join">
-						Login/Register
-					</a>
-				}
-			</div>
-
-		</nav>
-	</header>
-}
-
-templ Footer(isProd bool){
-	<footer>
-
-		if !isProd {
-
-			// {{template "debugGuestButton.tmpl" }}
-			// {{template "debugUserButton.tmpl" 1 }}
-			// {{template "debugUserButton.tmpl" 2 }}
-
-		}
-
-	</footer>
+templ Error(err error){
+	<h1>
+		{err.Error()}
+	</h1>
 }

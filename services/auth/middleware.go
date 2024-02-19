@@ -1,24 +1,45 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+	"net/http"
 )
 
-func (auth *Auth) OptionalUserMiddleware(ginContext *gin.Context) {
-	user, _ := auth.ValidateUser(ginContext)
+func (auth *Auth) RequireGuestMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	ginContext.Set("user", user)
-	ginContext.Next()
+		user, _ := auth.ValidateUser(r)
+		if user != nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
-func (auth *Auth) RequireUserMiddleware(ginContext *gin.Context) {
-	user, err := auth.ValidateUser(ginContext)
-	if err != nil {
-		// fmt.Errorf(": %w", err)
-		ginContext.Redirect(302, "/")
-		return
-	}
+func (auth *Auth) OptionalUserMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	ginContext.Set("user", user)
-	ginContext.Next()
+		user, _ := auth.ValidateUser(r)
+
+		ctx := context.WithValue(r.Context(), "user", user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (auth *Auth) RequireUserMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		user, err := auth.ValidateUser(r)
+		if err != nil || user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "user", user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
