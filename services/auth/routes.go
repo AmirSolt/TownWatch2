@@ -1,7 +1,11 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
+	authtemplates "townwatch/base/basetemplates"
+
+	"github.com/gin-gonic/gin"
 )
 
 // routes:
@@ -19,14 +23,44 @@ func (auth *Auth) registerAuthRoutes() {
 
 func (auth *Auth) authRoutes() {
 
-	http.Handle("/join/signin", auth.RequireGuestMiddleware(auth.signinHandler()))
-	http.Handle("/join/resendverif", auth.RequireGuestMiddleware(auth.resendVerifHandler()))
-	http.Handle("/join/signout", auth.RequireUserMiddleware(auth.signoutHandler()))
+	auth.base.Engine.POST("/join/signin", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
 
+		email := ctx.PostForm("email")
+		if email == "" {
+			err := errors.New("error: No email found")
+			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			return
+		}
+		err := auth.InitOTP(ctx, email)
+		if err != nil {
+			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			return
+		}
+		ctx.Redirect(http.StatusFound, "/join/verif")
+	})
+
+	auth.base.Engine.GET("/join/signout", auth.RequireUserMiddleware, func(ctx *gin.Context) {
+		Signout(ctx)
+		ctx.Redirect(http.StatusFound, "/")
+	})
 }
 
 func (auth *Auth) authTestRoutes() {
 
-	http.Handle("/join-test/signin", auth.signinTestHandler())
+	auth.base.Engine.POST("/join/signin/debug", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
+
+		email := ctx.PostForm("email")
+		if email == "" {
+			err := errors.New("error: No email found")
+			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			return
+		}
+		err := auth.DebugOTP(ctx, email)
+		if err != nil {
+			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			return
+		}
+		ctx.Redirect(http.StatusFound, "/")
+	})
 
 }

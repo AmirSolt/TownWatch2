@@ -1,13 +1,13 @@
 package auth
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 	"townwatch/services/auth/authmodels"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwe"
@@ -21,13 +21,12 @@ type JWT struct {
 	EXP int64  `json:"exp"`
 }
 
-func (auth *Auth) ValidateUser(r *http.Request) (*authmodels.User, error) {
+func (auth *Auth) ValidateUser(ctx *gin.Context) (*authmodels.User, error) {
 	// get it from cookie
-	cookie, err := r.Cookie("Authorization")
+	tokenString, err := ctx.Cookie("Authorization")
 	if err != nil {
 		return nil, fmt.Errorf("jwt not found on cookie: %w", err)
 	}
-	tokenString := cookie.Value
 
 	// parse and validate token
 	jwt, err := auth.ParseJWT(tokenString)
@@ -36,18 +35,18 @@ func (auth *Auth) ValidateUser(r *http.Request) (*authmodels.User, error) {
 	}
 
 	// find user and check exp
-	user, err := auth.ValidateJWTByUser(r, jwt)
+	user, err := auth.ValidateJWTByUser(ctx, jwt)
 	if err != nil {
 		return nil, fmt.Errorf("jwt validation by user failed: %w", err)
 	}
 	return user, nil
 }
 
-func (auth *Auth) SetJWTCookie(w http.ResponseWriter, r *http.Request, user *authmodels.User) error {
+func (auth *Auth) SetJWTCookie(ctx *gin.Context, user *authmodels.User) error {
 
 	jwt := JWT{
 		ID:  string(user.ID.Bytes[:]),
-		IP:  r.RemoteAddr,
+		IP:  ctx.ClientIP(),
 		EXP: time.Now().Add(time.Second * jwtExpirationDurationSeconds).Unix(),
 	}
 
@@ -57,8 +56,8 @@ func (auth *Auth) SetJWTCookie(w http.ResponseWriter, r *http.Request, user *aut
 	}
 
 	// attach to cookie
-	// ginContext.SetSameSite(http.SameSiteLaxMode)
-	http.SetCookie(w, &http.Cookie{
+	ctx.SetSameSite(http.SameSiteLaxMode)
+	ctx.SetCookie(
 		"Authorization",
 		string(jwtEncrypted),
 		jwtExpirationDurationSeconds,
@@ -66,14 +65,13 @@ func (auth *Auth) SetJWTCookie(w http.ResponseWriter, r *http.Request, user *aut
 		"",
 		true,
 		true,
-	})
-
+	)
 	return nil
 }
 
-func removeJWTCookie(w http.ResponseWriter) {
+func removeJWTCookie(ctx *gin.Context) {
 
-	http.SetCookie(w, &http.Cookie{
+	ctx.SetCookie(
 		"Authorization",
 		"",
 		jwtExpirationDurationSeconds,
@@ -81,7 +79,7 @@ func removeJWTCookie(w http.ResponseWriter) {
 		"",
 		true,
 		true,
-	})
+	)
 
 }
 
@@ -93,13 +91,13 @@ func (auth *Auth) ParseJWT(jwtEncrypted string) (*JWT, error) {
 	return jwt, nil
 }
 
-func (auth *Auth) ValidateJWTByUser(r *http.Request, jwt *JWT) (*authmodels.User, error) {
+func (auth *Auth) ValidateJWTByUser(ctx *gin.Context, jwt *JWT) (*authmodels.User, error) {
 
 	if jwt.EXP < time.Now().Unix() {
 		return nil, fmt.Errorf("error jwt is expired")
 	}
 
-	if jwt.IP == r.RemoteAddr {
+	if jwt.IP == ctx.ClientIP() {
 		return nil, fmt.Errorf("error jwt is from an invalid IP")
 	}
 
@@ -107,7 +105,7 @@ func (auth *Auth) ValidateJWTByUser(r *http.Request, jwt *JWT) (*authmodels.User
 		Bytes: stringToByte16(jwt.ID),
 		Valid: true,
 	}
-	user, err := auth.Queries.GetUser(context.Background(), UserID)
+	user, err := auth.Queries.GetUser(ctx, UserID)
 	if err != nil {
 		return nil, fmt.Errorf("error jwt user not found")
 	}

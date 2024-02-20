@@ -1,14 +1,24 @@
 package pages
 
 import (
-	"net/http"
-	"townwatch/views/pages/join"
+	"townwatch/base"
 
-	"github.com/a-h/templ"
+	"github.com/gin-gonic/gin"
 )
 
-func RegisterPagesRoutes() {
+func RegisterPagesRoutes(base *base.Base) {
 
-	http.Handle("/join", templ.Handler(join.JoinPage()))
+	// TODO: middleware
+	base.Engine.GET("/join", func(ctx *gin.Context) {
+		JoinPage().Render(ctx, ctx.Writer)
+	})
+	// TODO: middleware
+	base.Engine.GET("/join/verif", func(ctx *gin.Context) {
+		VerifyPage().Render(ctx, ctx.Writer)
+	})
+
+	base.Engine.GET("/", func(ctx *gin.Context) {
+		IndexPage(base.IS_PROD).Render(ctx, ctx.Writer)
+	})
 
 }

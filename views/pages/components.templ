@@ -1,3 +1,8 @@
+package pages
+
+
+import "townwatch/base/basetemplates"
+import "townwatch/services/auth/authtemplates"
 
 templ Head(title string){
 	<head>
@@ -8,10 +13,11 @@ templ Head(title string){
 }
 
 templ Header(isUser bool) {
+	
 	<header>
 		<nav>
 
-			@Brand()
+			@basetemplates.Brand()
 
 			<div>
 				<a href="/pricing">
@@ -38,10 +44,11 @@ templ Footer(isProd bool){
 
 		if !isProd {
 
-			// {{template "debugGuestButton.tmpl" }}
-			// {{template "debugUserButton.tmpl" 1 }}
-			// {{template "debugUserButton.tmpl" 2 }}
 
+			@authtemplates.DebugGuestButton()
+			@authtemplates.DebugUserButton("Amir")
+			@authtemplates.DebugUserButton("Jake")
+			@authtemplates.DebugUserButton("May")
 		}
 
 	</footer>

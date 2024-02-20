@@ -2,12 +2,8 @@
 
 CREATE TABLE users (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tier INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    email TEXT NOT NULL UNIQUE,
-
-    stripe_customer_id TEXT UNIQUE,
-    stripe_subscription_id TEXT UNIQUE
+    email TEXT NOT NULL UNIQUE
 );
 
 

@@ -8,10 +8,6 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM users
 WHERE email = $1 LIMIT 1;
 
--- name: GetUserByStripeCustomerID :one
-SELECT * FROM users
-WHERE stripe_customer_id = $1 LIMIT 1;
-
 -- name: GetUsers :many
 SELECT * FROM users
 WHERE id = ANY($1::text[]);
@@ -23,18 +19,6 @@ INSERT INTO users (
     $1
 )
 RETURNING *;
-
--- name: UpdateUserStripeCustomerID :exec
-UPDATE users
-SET stripe_customer_id = $1
-WHERE id = $2;
-
--- name: UpdateUserSubAndTier :exec
-UPDATE users
-SET 
-stripe_subscription_id = $1,
-tier = $2
-WHERE id = $3;
 
 
 

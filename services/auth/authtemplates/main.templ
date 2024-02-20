@@ -1,5 +1,20 @@
+package authtemplates
 
+templ DebugGuestButton(){
+    <form action="/join/signout" method="POST">
+        <button class="btn btn-nrm" type="submit">
+            Guest
+        </button>
+    </form>
 
-templ SigninError(){
-    <h1>Error</h1>
+}
+
+templ DebugUserButton(name string){
+    <form action="/join/signin/debug" method="POST">
+        <input class="input" type="hidden" name="email" value={name+"@email.com"}></input>
+        <button class="btn btn-nrm" type="submit">
+            {name}
+        </button>
+    </form>
+
 }

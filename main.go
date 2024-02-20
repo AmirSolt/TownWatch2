@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"townwatch/base"
 	"townwatch/services/auth"
 	"townwatch/views/pages"
@@ -16,12 +15,12 @@ func main() {
 	base.LoadBase()
 	auth.LoadAuth(&base)
 
-	pages.RegisterPagesRoutes()
+	pages.RegisterPagesRoutes(&base)
 
 	fmt.Println("=======")
 	fmt.Println("http://localhost:8080")
 	fmt.Println("=======")
 
-	http.ListenAndServe(":8080", nil)
+	base.Run()
 	base.Kill()
 }

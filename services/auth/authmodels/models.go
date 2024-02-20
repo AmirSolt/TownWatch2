@@ -17,10 +17,7 @@ type Otp struct {
 }
 
 type User struct {
-	ID                   pgtype.UUID
-	Tier                 interface{}
-	CreatedAt            pgtype.Timestamptz
-	Email                string
-	StripeCustomerID     pgtype.Text
-	StripeSubscriptionID pgtype.Text
+	ID        pgtype.UUID
+	CreatedAt pgtype.Timestamptz
+	Email     string
 }
