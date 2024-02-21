@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
-	"os/exec"
 	"sort"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -118,70 +116,6 @@ func (m model) View() string {
 
 // ==============================================================
 // Funcs
-
-type templGenerateError struct{ err error }
-type sqlcGenerateError struct{ err error }
-
-func templGenerate() {
-	cmdName := "templ"
-	args := []string{"generate"}
-
-	cmd := exec.Command(cmdName, args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
-	fmt.Printf("Output:\n%s\n", output)
-}
-
-func sqlcGenerate() {
-	updateSqlcConfig()
-
-	cmdName := "sqlc"
-	args := []string{"generate"}
-
-	cmd := exec.Command(cmdName, args...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
-	fmt.Printf("Output:\n%s\n", output)
-}
-
-func updateSqlcConfig() {
-	const header = `	
-	version: "2"
-	sql: `
-
-	// entries, err := os.ReadDir("services/")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	const service = `
-	  - engine: "postgresql"
-		queries: "services/auth/authmodels/sql/query.sql"
-		schema: "services/auth/authmodels/sql/schema.sql"
-		gen:
-		  go:
-			package: "authmodels"
-			out: "services/auth/authmodels"
-			sql_package: "pgx/v5"
-	`
-
-	file, err := os.Create("test.yaml")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	// Write the string "hello world" to the file.
-	_, err = file.WriteString(header + service)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-}
 
 // ==============================================================
 

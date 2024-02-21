@@ -18,10 +18,8 @@ func (base *Base) loadDB() {
 		log.Fatalln("Error db:", dbErr)
 	}
 
-	// queries := models.New(conn)
 	base.DB = &DB{
 		Conn: conn,
-		// Queries: queries,
 	}
 }
 

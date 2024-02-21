@@ -1,10 +1,10 @@
 version: "2"
 sql:
-  - engine: "postgresql"
-    queries: "services/auth/authmodels/sql/query.sql"
-    schema: "services/auth/authmodels/sql/schema.sql"
-    gen:
-      go:
-        package: "authmodels"
-        out: "services/auth/authmodels"
-        sql_package: "pgx/v5"
+    - engine: postgresql
+      queries: services/auth/authmodels/sql/query.sql
+      schema: services/auth/authmodels/sql/schema.sql
+      gen:
+        go:
+            package: authmodels
+            out: services/auth/authmodels
+            sql_package: pgx/v5
