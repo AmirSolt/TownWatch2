@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
@@ -13,28 +12,37 @@ import (
 
 func pushToSql() {
 
+	services := getServicesWithSQL()
+	var allSQLs []string
+	for _, service := range services {
+		schemaFilePath, queryFilePath := getServicesSQLPaths(service)
+		contentSchema, errSchema := os.ReadFile(schemaFilePath)
+		if errSchema != nil {
+			log.Fatal(errSchema)
+		}
+		allSQLs = append(allSQLs, string(contentSchema))
+
+		contentQuery, errQuery := os.ReadFile(queryFilePath)
+		if errQuery != nil {
+			log.Fatal(errQuery)
+		}
+		allSQLs = append(allSQLs, string(contentQuery))
+	}
+
 	conn := loadDB()
 	defer conn.Close(context.Background())
 
-	path := filepath.Join("path", "to", "script.sql")
-
-	c, ioErr := ioutil.ReadFile(path)
-	if ioErr != nil {
-		// handle error.
-	}
+	conn.Exec(context.Background(), strings.Join(allSQLs, "\n"))
 }
 
 func resetDb() {
 
+	resetSQL
+
 	conn := loadDB()
 	defer conn.Close(context.Background())
 
-	path := filepath.Join("path", "to", "script.sql")
-
-	c, ioErr := os.ReadFile(path)
-	if ioErr != nil {
-		// handle error.
-	}
+	conn.Exec(context.Background(), resetSQL)
 }
 
 func loadDB() *pgx.Conn {

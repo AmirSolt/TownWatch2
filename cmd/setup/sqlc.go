@@ -42,21 +42,38 @@ type goLangConfig struct {
 	SqlPackage string `yaml:"sql_package"`
 }
 
-func updateSqlcConfig() {
-
+func getServicesWithSQL() []string {
 	entries, err := os.ReadDir("services/")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var sqlConfigs []sqlInstanceConfig
+	var serviceWithSQL []string
 	for _, service := range entries {
-		name := service.Name()
+		schemaFilePath, _ := getServicesSQLPaths(service.Name())
+		if _, err := os.Stat(schemaFilePath); err == nil {
+			serviceWithSQL = append(serviceWithSQL, service.Name())
+		}
+	}
+
+	return serviceWithSQL
+}
+
+func getServicesSQLPaths(serviceName string) (string, string) {
+	return fmt.Sprintf("services/%s/%smodels/sql/schema.sql", serviceName, serviceName), fmt.Sprintf("services/%s/%smodels/sql/query.sql", serviceName, serviceName)
+}
+
+func updateSqlcConfig() {
+
+	services := getServicesWithSQL()
+	var sqlConfigs []sqlInstanceConfig
+	for _, name := range services {
+
+		schemaFilePath, queryFilePath := getServicesSQLPaths(name)
 
 		sqlConfigs = append(sqlConfigs, sqlInstanceConfig{
 			Engine:  "postgresql",
-			Queries: fmt.Sprintf("services/%s/%smodels/sql/query.sql", name, name),
-			Schema:  fmt.Sprintf("services/%s/%smodels/sql/schema.sql", name, name),
+			Schema:  schemaFilePath,
+			Queries: queryFilePath,
 			Gen: genConfig{
 				Go: goLangConfig{
 					Package:    fmt.Sprintf("%smodels", name),
