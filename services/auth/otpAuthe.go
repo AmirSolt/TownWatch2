@@ -6,6 +6,7 @@ import (
 	"townwatch/services/auth/authmodels"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -44,7 +45,14 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 		return err
 	}
 
-	auth.ValidateOTP(ctx, string(otp.ID.Bytes[:]))
+	uuid, err := uuid.FromBytes(otp.ID.Bytes[:])
+	if err != nil {
+		return err
+	}
+	errVOTP := auth.ValidateOTP(ctx, uuid.String())
+	if errVOTP != nil {
+		return errVOTP
+	}
 
 	return nil
 }
@@ -84,7 +92,12 @@ func (auth *Auth) ResendOTP(ctx *gin.Context, email string) error {
 func (auth *Auth) ValidateOTP(ctx *gin.Context, otpId string) error {
 
 	// Find OTP
-	otp, err := auth.Queries.GetOTP(ctx, pgtype.UUID{Bytes: stringToByte16(otpId), Valid: true})
+	id, err := uuid.Parse(otpId)
+	if err != nil {
+		return err
+	}
+	otpID := pgtype.UUID{Bytes: id, Valid: true}
+	otp, err := auth.Queries.GetOTP(ctx, otpID)
 	if err != nil {
 		return fmt.Errorf("error OTP lookup: %w", err)
 	}
@@ -112,7 +125,10 @@ func (auth *Auth) ValidateOTP(ctx *gin.Context, otpId string) error {
 		return fmt.Errorf("otp does not match latest user otp: %w", err)
 	}
 
-	auth.SetJWTCookie(ctx, &user)
+	errJwt := auth.SetJWTCookie(ctx, &user)
+	if errJwt != nil {
+		return fmt.Errorf("error Setting JWT Cookie: %w", errJwt)
+	}
 
 	return nil
 }

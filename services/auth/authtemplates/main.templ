@@ -1,20 +1,34 @@
 package authtemplates
 
-templ DebugGuestButton(){
-    <form action="/join/signout" method="POST">
-        <button class="btn btn-nrm" type="submit">
-            Guest
-        </button>
-    </form>
+import "townwatch/services/auth/authmodels"
 
+templ DebugGuestButton(user *authmodels.User) {
+	if user == nil {
+		<form action="/join/signout" method="POST">
+			<button class="btn btn-green" type="submit" disabled>
+				Guest
+			</button>
+		</form>
+	} else {
+		<form action="/join/signout" method="POST">
+			<button class="btn btn-red" type="submit">
+				Guest
+			</button>
+		</form>
+	}
 }
 
-templ DebugUserButton(name string){
-    <form action="/join/signin/debug" method="POST">
-        <input class="input" type="hidden" name="email" value={name+"@email.com"}></input>
-        <button class="btn btn-nrm" type="submit">
-            {name}
-        </button>
-    </form>
-
+templ DebugUserButton(user *authmodels.User, name string) {
+	if user!=nil && user.Email == name+"@email.com" {
+		<button class="btn btn-green" type="submit" disabled>
+			{ name }
+		</button>
+	} else {
+		<form action="/join/signin/debug" method="POST">
+			<input class="input" type="hidden" name="email" value={ name + "@email.com" }/>
+			<button class="btn btn-primary" type="submit">
+				{ name }
+			</button>
+		</form>
+	}
 }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	authtemplates "townwatch/base/basetemplates"
 
@@ -57,6 +58,7 @@ func (auth *Auth) authTestRoutes() {
 		}
 		err := auth.DebugOTP(ctx, email)
 		if err != nil {
+			fmt.Println("DebugOTP error:", err)
 			authtemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}

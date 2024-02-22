@@ -13,9 +13,9 @@ func main() {
 	}
 
 	base.LoadBase()
-	auth.LoadAuth(&base)
+	auth := auth.LoadAuth(&base)
 
-	pages.RegisterPagesRoutes(&base)
+	pages.RegisterPagesRoutes(&base, auth)
 
 	fmt.Println("=======")
 	fmt.Println("http://localhost:8080")

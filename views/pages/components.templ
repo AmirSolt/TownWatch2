@@ -1,31 +1,26 @@
 package pages
 
-
 import "townwatch/base/basetemplates"
 import "townwatch/services/auth/authmodels"
 import "townwatch/services/auth/authtemplates"
 
-templ Head(title string){
+templ Head(title string) {
 	<head>
-		<meta charset="UTF-8"></meta>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
-		<title>{title}</title>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title }</title>
 	</head>
 }
 
 templ Header(user *authmodels.User) {
-	
 	<header>
 		<nav>
-
 			@basetemplates.Brand()
-
 			<div>
 				<a href="/pricing">
 					Pricing
 				</a>
-
-				if isUser {
+				if user!=nil {
 					<a href="/user">
 						User
 					</a>
@@ -35,22 +30,17 @@ templ Header(user *authmodels.User) {
 					</a>
 				}
 			</div>
-
 		</nav>
 	</header>
 }
 
-templ Footer(user *authmodels.User, isProd bool){
+templ Footer(user *authmodels.User, isProd bool) {
 	<footer>
-
 		if !isProd {
-
-
-			@authtemplates.DebugGuestButton(user, )
+			@authtemplates.DebugGuestButton(user)
 			@authtemplates.DebugUserButton(user, "Amir")
 			@authtemplates.DebugUserButton(user, "Jake")
 			@authtemplates.DebugUserButton(user, "May")
 		}
-
 	</footer>
 }

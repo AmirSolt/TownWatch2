@@ -11,6 +11,7 @@ import "io"
 import "bytes"
 
 import "townwatch/base/basetemplates"
+import "townwatch/services/auth/authmodels"
 import "townwatch/services/auth/authtemplates"
 
 func Head(title string) templ.Component {
@@ -33,7 +34,7 @@ func Head(title string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views\pages\components.templ`, Line: 10, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views\pages\components.templ`, Line: 10, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -50,7 +51,7 @@ func Head(title string) templ.Component {
 	})
 }
 
-func Header(isUser bool) templ.Component {
+func Header(user *authmodels.User) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -75,7 +76,7 @@ func Header(isUser bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if isUser {
+		if user != nil {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a href=\"/user\">User\r</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -97,7 +98,7 @@ func Header(isUser bool) templ.Component {
 	})
 }
 
-func Footer(isProd bool) templ.Component {
+func Footer(user *authmodels.User, isProd bool) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -115,7 +116,7 @@ func Footer(isProd bool) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if !isProd {
-			templ_7745c5c3_Err = authtemplates.DebugGuestButton().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = authtemplates.DebugGuestButton(user).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -123,7 +124,7 @@ func Footer(isProd bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = authtemplates.DebugUserButton("Amir").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = authtemplates.DebugUserButton(user, "Amir").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -131,7 +132,7 @@ func Footer(isProd bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = authtemplates.DebugUserButton("Jake").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = authtemplates.DebugUserButton(user, "Jake").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -139,7 +140,7 @@ func Footer(isProd bool) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = authtemplates.DebugUserButton("May").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = authtemplates.DebugUserButton(user, "May").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
