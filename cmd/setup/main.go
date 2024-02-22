@@ -17,13 +17,13 @@ type model struct {
 
 func initialModel() model {
 
-	choices := []string{"Templ Generate", "Sqlc Generate"}
+	choices := []string{"*DANGER* Reset DB", "Push To DB", "Sqlc Generate", "Templ Generate"}
 
 	funcs := map[string]func(){
-		choices[0]: templGenerate,
-		choices[1]: sqlcGenerate,
-		// "Push to DB",
-		// "Reset DB",
+		choices[0]: resetDb,
+		choices[1]: pushToDB,
+		choices[2]: sqlcGenerate,
+		choices[3]: templGenerate,
 	}
 
 	return model{
@@ -108,7 +108,7 @@ func (m model) View() string {
 	}
 
 	// The footer
-	s += "\nPress Space to select, and Enter to execute.\n"
+	s += "\nPress Space to select, and Enter to execute.\n\n"
 
 	// Send the UI for rendering
 	return s
