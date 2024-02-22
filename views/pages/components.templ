@@ -2,6 +2,7 @@ package pages
 
 
 import "townwatch/base/basetemplates"
+import "townwatch/services/auth/authmodels"
 import "townwatch/services/auth/authtemplates"
 
 templ Head(title string){
@@ -12,7 +13,7 @@ templ Head(title string){
 	</head>
 }
 
-templ Header(isUser bool) {
+templ Header(user *authmodels.User) {
 	
 	<header>
 		<nav>
@@ -39,16 +40,16 @@ templ Header(isUser bool) {
 	</header>
 }
 
-templ Footer(isProd bool){
+templ Footer(user *authmodels.User, isProd bool){
 	<footer>
 
 		if !isProd {
 
 
-			@authtemplates.DebugGuestButton()
-			@authtemplates.DebugUserButton("Amir")
-			@authtemplates.DebugUserButton("Jake")
-			@authtemplates.DebugUserButton("May")
+			@authtemplates.DebugGuestButton(user, )
+			@authtemplates.DebugUserButton(user, "Amir")
+			@authtemplates.DebugUserButton(user, "Jake")
+			@authtemplates.DebugUserButton(user, "May")
 		}
 
 	</footer>
