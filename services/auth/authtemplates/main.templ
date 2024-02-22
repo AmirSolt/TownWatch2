@@ -4,13 +4,13 @@ import "townwatch/services/auth/authmodels"
 
 templ DebugGuestButton(user *authmodels.User) {
 	if user == nil {
-		<form action="/join/signout" method="POST">
+		<form action="/join/signout" method="GET">
 			<button class="btn btn-green" type="submit" disabled>
 				Guest
 			</button>
 		</form>
 	} else {
-		<form action="/join/signout" method="POST">
+		<form action="/join/signout" method="GET">
 			<button class="btn btn-red" type="submit">
 				Guest
 			</button>

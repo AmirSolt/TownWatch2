@@ -22,6 +22,18 @@ func (auth *Auth) InitOTP(ctx *gin.Context, email string) error {
 	if err != nil {
 		return err
 	}
+
+	// =======================
+	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
+	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
+	if err != nil && err != pgx.ErrNoRows {
+		return fmt.Errorf("error latest otp lookup: %w", err)
+	}
+	if time.Now().Add(-time.Second * otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
+		return fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
+	}
+	// =======================
+
 	otp, err := auth.createOTP(ctx, user)
 	if err != nil {
 		return err
@@ -57,6 +69,7 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 	return nil
 }
 
+// deprecated
 func (auth *Auth) ResendOTP(ctx *gin.Context, email string) error {
 
 	// find user
@@ -171,7 +184,12 @@ func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodel
 }
 
 func (auth *Auth) sendOTPEmail(user *authmodels.User, otp *authmodels.Otp) error {
-	content := "content" + string(otp.ID.Bytes[:])
+
+	uuid, err := uuid.FromBytes(otp.ID.Bytes[:])
+	if err != nil {
+		return err
+	}
+	content := "content" + uuid.String()
 	errEmail := auth.base.SendEmail(user.Email, "User", "Town Watch", "Email Verification Link", content)
 	if errEmail != nil {
 		return fmt.Errorf("error OTP email could not be sent: %w", errEmail)
