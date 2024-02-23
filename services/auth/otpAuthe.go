@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"net/mail"
 	"time"
 	"townwatch/services/auth/authmodels"
 
@@ -44,13 +45,13 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 	}
 	otp, err := auth.createOTP(ctx, user)
 	if err != nil {
-
 		return err
 	}
 
 	uuid, err := uuid.FromBytes(otp.ID.Bytes[:])
 	if err != nil {
-		return err
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("debug uuid conversion (%v)", eventId)
 	}
 	errVOTP := auth.ValidateOTP(ctx, uuid.String())
 	if errVOTP != nil {
@@ -70,26 +71,30 @@ func (auth *Auth) ValidateOTP(ctx *gin.Context, otpId string) error {
 	otpID := pgtype.UUID{Bytes: id, Valid: true}
 	otp, err := auth.Queries.GetOTP(ctx, otpID)
 	if err != nil {
-		return fmt.Errorf("error OTP lookup: %w", err)
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("validation failed (%v)", eventId)
 	}
 
 	if !otp.IsActive {
-		return fmt.Errorf("error OTP is not active: %w", err)
+		eventId := sentry.CaptureException(fmt.Errorf("error OTP is not active. OTP: %+v", otp))
+		return fmt.Errorf("validation failed (%v)", eventId)
 	}
 	defer auth.deactivateOTP(ctx, &otp)
 
 	if time.Now().UTC().After(otp.ExpiresAt.Time) {
-		return fmt.Errorf("error OTP is expired: %w", err)
+		eventId := sentry.CaptureException(fmt.Errorf("verification has expired. OTP: %+v | Now: %+v", otp, time.Now().UTC()))
+		return fmt.Errorf("verification has expired (%v)", eventId)
 	}
 
 	user, err := auth.Queries.GetUser(ctx, otp.UserID)
 	if err != nil {
-		return fmt.Errorf("error user not found by OTP: %w", err)
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("validation failed (%v)", eventId)
 	}
 
 	errJwt := auth.SetJWTCookie(ctx, &user)
 	if errJwt != nil {
-		return fmt.Errorf("error Setting JWT Cookie: %w", errJwt)
+		return errJwt
 	}
 
 	return nil
@@ -105,15 +110,23 @@ func (auth *Auth) findOrCreateUser(ctx *gin.Context, email string) (*authmodels.
 	var user authmodels.User
 	var err error
 
+	_, errEmail := mail.ParseAddress(email)
+	if errEmail != nil {
+		eventId := sentry.CaptureException(errEmail)
+		return nil, fmt.Errorf("validation failed (%v)", eventId)
+	}
+
 	user, err = auth.Queries.GetUserByEmail(ctx, email)
 	if err != nil && err != pgx.ErrNoRows {
-		return nil, fmt.Errorf("error user email lookup: %w", err)
+		eventId := sentry.CaptureException(err)
+		return nil, fmt.Errorf("validation failed (%v)", eventId)
 	}
 
 	if err == pgx.ErrNoRows {
 		user, err = auth.Queries.CreateUser(ctx, email)
 		if err != nil {
-			return nil, fmt.Errorf("error user creation: %w", err)
+			eventId := sentry.CaptureException(err)
+			return nil, fmt.Errorf("validation failed (%v)", eventId)
 		}
 	}
 
@@ -126,10 +139,12 @@ func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodel
 	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
 	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
 	if err != nil && err != pgx.ErrNoRows {
-		return nil, fmt.Errorf("error latest otp lookup: %w", err)
+		eventId := sentry.CaptureException(err)
+		return nil, fmt.Errorf("verification email failed (%v)", eventId)
 	}
 	if lastOTP.ID.Valid && time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
-		return nil, fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
+		eventId := sentry.CaptureException(fmt.Errorf("otp retry timeout. lastOTP: %+v | should be before this time: %+v", lastOTP, time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC()))
+		return nil, fmt.Errorf("wait %v seconds before trying again (%v)", otpRetryExpirationDurationSeconds, eventId)
 	}
 	// =======================
 
@@ -137,7 +152,8 @@ func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodel
 	// make sure all user otp's are inactive before creating a new one
 	errDe := auth.Queries.DeactivateAllUserOTPs(ctx, user.ID)
 	if errDe != nil {
-		return nil, fmt.Errorf("error DeactivateAllUserOTPs: %w", errDe)
+		eventId := sentry.CaptureException(errDe)
+		return nil, fmt.Errorf("verification email failed (%v)", eventId)
 	}
 	// =======================
 
@@ -147,10 +163,9 @@ func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodel
 		UserID:    user.ID,
 	})
 
-	eventId := sentry.CaptureException(fmt.Errorf("error OTP creation: %w", err))
 	if err != nil {
-
-		return nil, fmt.Errorf("error OTP creation: %v", eventId)
+		eventId := sentry.CaptureException(err)
+		return nil, fmt.Errorf("verification email failed (%v)", eventId)
 	}
 	return &otp, nil
 }
@@ -159,12 +174,13 @@ func (auth *Auth) sendOTPEmail(user *authmodels.User, otp *authmodels.Otp) error
 
 	uuid, err := uuid.FromBytes(otp.ID.Bytes[:])
 	if err != nil {
-		return err
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("verification email failed (%v)", eventId)
 	}
 	content := "content uuid: " + fmt.Sprintf("%v/join/otp/%v", auth.base.DOMAIN, uuid.String())
 	errEmail := auth.base.SendEmail(user.Email, "User", "Town Watch", "Email Verification Link", content)
 	if errEmail != nil {
-		return fmt.Errorf("error OTP email could not be sent: %w", errEmail)
+		return fmt.Errorf("verification email failed")
 	}
 	return nil
 }
@@ -172,7 +188,8 @@ func (auth *Auth) sendOTPEmail(user *authmodels.User, otp *authmodels.Otp) error
 func (auth *Auth) deactivateOTP(ctx *gin.Context, otp *authmodels.Otp) error {
 	err := auth.Queries.DeactivateOTP(ctx, otp.ID)
 	if err != nil {
-		return fmt.Errorf("deactivating otp failed: %w", err)
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("verification email failed (%v)", eventId)
 	}
 	return nil
 }

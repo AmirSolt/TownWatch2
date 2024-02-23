@@ -11,13 +11,10 @@ import (
 
 func RegisterPagesRoutes(base *base.Base, auth *auth.Auth) {
 
-	// TODO: middleware
 	base.Engine.GET("/join", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
 		JoinPage().Render(ctx, ctx.Writer)
 	})
-	// TODO: middleware
 	base.Engine.GET("/join/verif", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
-
 		VerifyPage().Render(ctx, ctx.Writer)
 	})
 

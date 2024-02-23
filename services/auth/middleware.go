@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,10 +17,7 @@ func (auth *Auth) RequireGuestMiddleware(ctx *gin.Context) {
 }
 
 func (auth *Auth) OptionalUserMiddleware(ctx *gin.Context) {
-	user, err := auth.ValidateUser(ctx)
-	if err != nil {
-		fmt.Printf("\nOptionalUserMiddleware Error:%w \n\n", err)
-	}
+	user, _ := auth.ValidateUser(ctx)
 	ctx.Set("user", user)
 	ctx.Next()
 }

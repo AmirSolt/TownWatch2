@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	authtemplates "townwatch/base/basetemplates"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +28,8 @@ func (auth *Auth) authRoutes() {
 
 		email := ctx.PostForm("email")
 		if email == "" {
-			err := errors.New("error: No email found")
+			eventId := sentry.CaptureException(fmt.Errorf("email not found on postFrom. ctx: %+v", ctx))
+			err := fmt.Errorf("email missing from the form (%v)", eventId)
 			authtemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}
@@ -45,7 +46,6 @@ func (auth *Auth) authRoutes() {
 		otpID := ctx.Param("id")
 		errVOTP := auth.ValidateOTP(ctx, otpID)
 		if errVOTP != nil {
-			fmt.Println("ValidateOTP error:", errVOTP)
 			authtemplates.Error(errVOTP).Render(ctx, ctx.Writer)
 			return
 		}
@@ -64,13 +64,13 @@ func (auth *Auth) authTestRoutes() {
 
 		email := ctx.PostForm("email")
 		if email == "" {
-			err := errors.New("error: No email found")
+			eventId := sentry.CaptureException(fmt.Errorf("email not found on postFrom. ctx: %+v", ctx))
+			err := fmt.Errorf("email missing from the form (%v)", eventId)
 			authtemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}
 		err := auth.DebugOTP(ctx, email)
 		if err != nil {
-			fmt.Println("DebugOTP error:", err)
 			authtemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwe"
 )
@@ -34,23 +35,27 @@ func (base *Base) SendEmail(toEmail, toName, fromName, subject, content string) 
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to encode payload: %w", err)
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("failed to send email (%v)", eventId)
 	}
 
 	encrypted, err := jwe.Encrypt(payloadBytes, jwe.WithKey(jwa.A128GCMKW, []byte(base.EMAIL_SECRET_KEY)))
 	if err != nil {
-		return fmt.Errorf("failed to encrypt email payload: %w", err)
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("failed to send email (%v)", eventId)
 	}
 
 	resp, err := http.Post(base.EMAIL_CF_WORKER_URL, "application/json", bytes.NewBuffer(encrypted))
 	if err != nil {
-		return fmt.Errorf("failed to send request: %w", err)
+		eventId := sentry.CaptureException(err)
+		return fmt.Errorf("failed to send email (%v)", eventId)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("email service returned (%d): %s", resp.StatusCode, string(bodyBytes))
+		eventId := sentry.CaptureException(fmt.Errorf("email failed response. response: %v | ", string(bodyBytes)))
+		return fmt.Errorf("failed to send email (%v)", eventId)
 	}
 
 	return nil
