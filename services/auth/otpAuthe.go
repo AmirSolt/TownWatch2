@@ -146,8 +146,10 @@ func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodel
 		IsActive:  true,
 		UserID:    user.ID,
 	})
+
+	eventId := sentry.CaptureException(fmt.Errorf("error OTP creation: %w", err))
 	if err != nil {
-		eventId := sentry.CaptureException(fmt.Errorf("error OTP creation: %w", err))
+
 		return nil, fmt.Errorf("error OTP creation: %v", eventId)
 	}
 	return &otp, nil
