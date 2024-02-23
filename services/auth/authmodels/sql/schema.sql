@@ -1,5 +1,4 @@
 -- ======
-
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE users (
@@ -8,9 +7,7 @@ CREATE TABLE users (
     email TEXT NOT NULL UNIQUE
 );
 
-
 -- ======
-
 CREATE TABLE otps (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -19,3 +16,5 @@ CREATE TABLE otps (
     user_id uuid NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- on create otp make other otps deactive

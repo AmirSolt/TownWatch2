@@ -29,7 +29,7 @@ func (auth *Auth) InitOTP(ctx *gin.Context, email string) error {
 	if err != nil && err != pgx.ErrNoRows {
 		return fmt.Errorf("error latest otp lookup: %w", err)
 	}
-	if time.Now().Add(-time.Second * otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
+	if lastOTP.ID.Valid && time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
 		return fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
 	}
 	// =======================
@@ -52,6 +52,18 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 	if err != nil {
 		return err
 	}
+
+	// =======================
+	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
+	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
+	if err != nil && err != pgx.ErrNoRows {
+		return fmt.Errorf("error latest otp lookup: %w", err)
+	}
+	if lastOTP.ID.Valid && time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
+		return fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
+	}
+	// =======================
+
 	otp, err := auth.createOTP(ctx, user)
 	if err != nil {
 		return err
