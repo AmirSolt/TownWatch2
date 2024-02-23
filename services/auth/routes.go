@@ -40,7 +40,7 @@ func (auth *Auth) authRoutes() {
 		ctx.Redirect(http.StatusFound, "/join/verif")
 	})
 
-	auth.base.Engine.POST("/join/otp/:id", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
+	auth.base.Engine.GET("/join/otp/:id", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
 
 		otpID := ctx.Param("id")
 		errVOTP := auth.ValidateOTP(ctx, otpID)

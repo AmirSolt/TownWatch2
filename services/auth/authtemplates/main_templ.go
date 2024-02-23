@@ -26,12 +26,12 @@ func DebugGuestButton(user *authmodels.User) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if user == nil {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button class=\"btn btn-green\" type=\"submit\" disabled>Guest\r</button>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"GET\"><button class=\"btn btn-green\" type=\"submit\" disabled>Guest\r</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"POST\"><button class=\"btn btn-red\" type=\"submit\">Guest\r</button></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"GET\"><button class=\"btn btn-red\" type=\"submit\">Guest\r</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -64,7 +64,7 @@ func DebugUserButton(user *authmodels.User, name string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\auth\authtemplates\main.templ`, Line: 21, Col: 9}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\auth\authtemplates\main.templ`, Line: 23, Col: 9}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -90,7 +90,7 @@ func DebugUserButton(user *authmodels.User, name string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\auth\authtemplates\main.templ`, Line: 27, Col: 10}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\auth\authtemplates\main.templ`, Line: 29, Col: 10}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

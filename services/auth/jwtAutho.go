@@ -25,14 +25,14 @@ type JWT struct {
 func (auth *Auth) ValidateUser(ctx *gin.Context) (*authmodels.User, error) {
 	// get it from cookie
 	tokenString, err := ctx.Cookie("Authorization")
-	if err != nil {
+	if tokenString == "" || err != nil {
 		return nil, fmt.Errorf("jwt not found on cookie: %w", err)
 	}
 
 	// parse and validate token
-	jwt, err := auth.ParseJWT(tokenString)
+	jwt, err := dencryptJWT([]byte(tokenString), auth.base.JWE_SECRET_KEY)
 	if err != nil {
-		return nil, fmt.Errorf("jwt parse failed: %w", err)
+		return nil, fmt.Errorf("jwt decryption failed: %w", err)
 	}
 
 	// find user and check exp
@@ -76,28 +76,6 @@ func (auth *Auth) SetJWTCookie(ctx *gin.Context, user *authmodels.User) error {
 	return nil
 }
 
-func removeJWTCookie(ctx *gin.Context) {
-
-	ctx.SetCookie(
-		"Authorization",
-		"",
-		jwtExpirationDurationSeconds,
-		"/",
-		"",
-		true,
-		true,
-	)
-
-}
-
-func (auth *Auth) ParseJWT(jwtEncrypted string) (*JWT, error) {
-	jwt, err := dencryptJWT([]byte(jwtEncrypted), auth.base.JWE_SECRET_KEY)
-	if err != nil {
-		return nil, fmt.Errorf("jwt decryption failed: %w", err)
-	}
-	return jwt, nil
-}
-
 func (auth *Auth) ValidateJWTByUser(ctx *gin.Context, jwt *JWT) (*authmodels.User, error) {
 
 	if jwt.EXP < time.Now().Unix() {
@@ -119,6 +97,20 @@ func (auth *Auth) ValidateJWTByUser(ctx *gin.Context, jwt *JWT) (*authmodels.Use
 	}
 
 	return &user, nil
+}
+
+func removeJWTCookie(ctx *gin.Context) {
+
+	ctx.SetCookie(
+		"Authorization",
+		"",
+		jwtExpirationDurationSeconds,
+		"/",
+		"",
+		true,
+		true,
+	)
+
 }
 
 // ==============================================================

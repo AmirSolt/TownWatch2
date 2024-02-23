@@ -23,17 +23,6 @@ func (auth *Auth) InitOTP(ctx *gin.Context, email string) error {
 		return err
 	}
 
-	// =======================
-	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
-	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
-	if err != nil && err != pgx.ErrNoRows {
-		return fmt.Errorf("error latest otp lookup: %w", err)
-	}
-	if lastOTP.ID.Valid && time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
-		return fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
-	}
-	// =======================
-
 	otp, err := auth.createOTP(ctx, user)
 	if err != nil {
 		return err
@@ -52,18 +41,6 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 	if err != nil {
 		return err
 	}
-
-	// =======================
-	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
-	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
-	if err != nil && err != pgx.ErrNoRows {
-		return fmt.Errorf("error latest otp lookup: %w", err)
-	}
-	if lastOTP.ID.Valid && time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
-		return fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
-	}
-	// =======================
-
 	otp, err := auth.createOTP(ctx, user)
 	if err != nil {
 		return err
@@ -76,39 +53,6 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 	errVOTP := auth.ValidateOTP(ctx, uuid.String())
 	if errVOTP != nil {
 		return errVOTP
-	}
-
-	return nil
-}
-
-// deprecated
-func (auth *Auth) ResendOTP(ctx *gin.Context, email string) error {
-
-	// find user
-	user, err := auth.Queries.GetUserByEmail(ctx, email)
-	if err != nil && err != pgx.ErrNoRows {
-		return fmt.Errorf("error user email lookup: %w", err)
-	}
-
-	// =======================
-	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
-	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
-	if err != nil && err != pgx.ErrNoRows {
-		return fmt.Errorf("error latest otp lookup: %w", err)
-	}
-	if time.Now().Add(-time.Second * otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
-		return fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
-	}
-	// =======================
-
-	otp, err := auth.createOTP(ctx, &user)
-	if err != nil {
-		return err
-	}
-
-	errEmail := auth.sendOTPEmail(&user, otp)
-	if errEmail != nil {
-		return errEmail
 	}
 
 	return nil
@@ -139,15 +83,6 @@ func (auth *Auth) ValidateOTP(ctx *gin.Context, otpId string) error {
 	user, err := auth.Queries.GetUser(ctx, otp.UserID)
 	if err != nil {
 		return fmt.Errorf("error user not found by OTP: %w", err)
-	}
-
-	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
-	if err != nil && err != pgx.ErrNoRows {
-		return fmt.Errorf("error latest otp lookup: %w", err)
-	}
-
-	if lastOTP.ID != otp.ID {
-		return fmt.Errorf("otp does not match latest user otp: %w", err)
 	}
 
 	errJwt := auth.SetJWTCookie(ctx, &user)
@@ -184,6 +119,26 @@ func (auth *Auth) findOrCreateUser(ctx *gin.Context, email string) (*authmodels.
 }
 
 func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodels.Otp, error) {
+
+	// =======================
+	// make sure last otp happened before otpRetryExpirationDurationSeconds ago
+	lastOTP, err := auth.Queries.GetLatestOTPByUser(ctx, user.ID)
+	if err != nil && err != pgx.ErrNoRows {
+		return nil, fmt.Errorf("error latest otp lookup: %w", err)
+	}
+	if lastOTP.ID.Valid && time.Now().Add(-time.Second*otpRetryExpirationDurationSeconds).UTC().Before(lastOTP.CreatedAt.Time) {
+		return nil, fmt.Errorf("you have to wait %v after sending OTP: %w", otpRetryExpirationDurationSeconds, err)
+	}
+	// =======================
+
+	// =======================
+	// make sure all user otp's are inactive before creating a new one
+	errDe := auth.Queries.DeactivateAllUserOTPs(ctx, user.ID)
+	if errDe != nil {
+		return nil, fmt.Errorf("error DeactivateAllUserOTPs: %w", errDe)
+	}
+	// =======================
+
 	otp, err := auth.Queries.CreateOTP(ctx, authmodels.CreateOTPParams{
 		ExpiresAt: pgtype.Timestamptz{Time: time.Now().Add(time.Second * otpExpirationDurationSeconds).UTC(), Valid: true},
 		IsActive:  true,
@@ -201,7 +156,7 @@ func (auth *Auth) sendOTPEmail(user *authmodels.User, otp *authmodels.Otp) error
 	if err != nil {
 		return err
 	}
-	content := "content" + uuid.String()
+	content := "content uuid: " + fmt.Sprintf("%v/join/otp/%v", auth.base.HOME_URL, uuid.String())
 	errEmail := auth.base.SendEmail(user.Email, "User", "Town Watch", "Email Verification Link", content)
 	if errEmail != nil {
 		return fmt.Errorf("error OTP email could not be sent: %w", errEmail)

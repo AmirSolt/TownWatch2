@@ -3,6 +3,17 @@ package pages
 import "townwatch/services/auth/authmodels"
 
 templ IndexPage(user *authmodels.User, isProd bool) {
+
+	<!DOCTYPE html>
+	<html lang="en">
+	@Head("Home")
+	<body>
+	@Header(user)
 	<h1>Hello</h1>
 	@Footer(user, isProd)
+		
+	</body>
+	</html>
+
+
 }

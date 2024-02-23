@@ -16,5 +16,3 @@ CREATE TABLE otps (
     user_id uuid NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
-
--- on create otp make other otps deactive

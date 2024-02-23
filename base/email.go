@@ -30,12 +30,14 @@ func (base *Base) SendEmail(toEmail, toName, fromName, subject, content string) 
 		ContentHTML: content,
 	}
 
+	fmt.Printf("\n>> Email Payload: %+v \n\n", payload)
+
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to encode payload: %w", err)
 	}
 
-	encrypted, err := jwe.Encrypt(payloadBytes, jwe.WithKey(jwa.A128GCM, base.EMAIL_SECRET_KEY))
+	encrypted, err := jwe.Encrypt(payloadBytes, jwe.WithKey(jwa.A128GCMKW, []byte(base.EMAIL_SECRET_KEY)))
 	if err != nil {
 		return fmt.Errorf("failed to encrypt email payload: %w", err)
 	}

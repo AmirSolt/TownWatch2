@@ -11,14 +11,15 @@ import (
 
 func RegisterPagesRoutes(base *base.Base, auth *auth.Auth) {
 
-	// // TODO: middleware
-	// base.Engine.GET("/join", func(ctx *gin.Context) {
-	// 	JoinPage().Render(ctx, ctx.Writer)
-	// })
-	// // TODO: middleware
-	// base.Engine.GET("/join/verif", func(ctx *gin.Context) {
-	// 	VerifyPage().Render(ctx, ctx.Writer)
-	// })
+	// TODO: middleware
+	base.Engine.GET("/join", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
+		JoinPage().Render(ctx, ctx.Writer)
+	})
+	// TODO: middleware
+	base.Engine.GET("/join/verif", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
+
+		VerifyPage().Render(ctx, ctx.Writer)
+	})
 
 	base.Engine.GET("/", auth.OptionalUserMiddleware, func(ctx *gin.Context) {
 		usertemp, exists := ctx.Get("user")

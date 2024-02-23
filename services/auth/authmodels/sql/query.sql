@@ -46,6 +46,11 @@ WHERE user_id = $1
 ORDER BY created_at desc
 LIMIT 1;
 
+-- name: DeactivateAllUserOTPs :exec
+UPDATE otps
+SET is_active = FALSE
+WHERE user_id = $1;
+
 
 -- name: DeactivateOTP :exec
 UPDATE otps
