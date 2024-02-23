@@ -1,5 +1,7 @@
 package base
 
+// Database connection to postgres
+
 import (
 	"context"
 	"log"

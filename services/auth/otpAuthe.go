@@ -5,6 +5,7 @@ import (
 	"time"
 	"townwatch/services/auth/authmodels"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -43,6 +44,7 @@ func (auth *Auth) DebugOTP(ctx *gin.Context, email string) error {
 	}
 	otp, err := auth.createOTP(ctx, user)
 	if err != nil {
+
 		return err
 	}
 
@@ -145,7 +147,8 @@ func (auth *Auth) createOTP(ctx *gin.Context, user *authmodels.User) (*authmodel
 		UserID:    user.ID,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error OTP creation: %w", err)
+		eventId := sentry.CaptureException(fmt.Errorf("error OTP creation: %w", err))
+		return nil, fmt.Errorf("error OTP creation: %v", eventId)
 	}
 	return &otp, nil
 }

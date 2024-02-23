@@ -16,8 +16,10 @@ func (base *Base) LoadBase() {
 	base.loadDB()
 	base.loadConfig()
 	base.loadEngine()
+	base.loadLogging()
 }
 
 func (base *Base) Kill() {
 	base.killDB()
+	base.killLogging()
 }

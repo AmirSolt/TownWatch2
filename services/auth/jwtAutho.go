@@ -7,6 +7,7 @@ import (
 	"time"
 	"townwatch/services/auth/authmodels"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -38,7 +39,8 @@ func (auth *Auth) ValidateUser(ctx *gin.Context) (*authmodels.User, error) {
 	// find user and check exp
 	user, err := auth.ValidateJWTByUser(ctx, jwt)
 	if err != nil {
-		return nil, fmt.Errorf("jwt validation by user failed: %w", err)
+		eventId := sentry.CaptureException(fmt.Errorf("jwt validation by user failed: %w", err))
+		return nil, fmt.Errorf("jwt validation by user failed: %v", eventId)
 	}
 
 	return user, nil

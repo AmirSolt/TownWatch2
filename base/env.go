@@ -24,6 +24,8 @@ type Env struct {
 	EMAIL_SECRET_KEY        string `validate:"required"`
 
 	JWE_SECRET_KEY string `validate:"required"`
+
+	GLITCHTIP_DSN string `validate:"required"`
 }
 
 func (base *Base) loadEnv() {
@@ -43,6 +45,7 @@ func (base *Base) loadEnv() {
 		EMAIL_CF_WORKER_API_KEY: os.Getenv("EMAIL_CF_WORKER_API_KEY"),
 		JWE_SECRET_KEY:          os.Getenv("JWE_SECRET_KEY"),
 		EMAIL_SECRET_KEY:        os.Getenv("EMAIL_SECRET_KEY"),
+		GLITCHTIP_DSN:           os.Getenv("GLITCHTIP_DSN"),
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
