@@ -10,7 +10,7 @@ import (
 )
 
 type Env struct {
-	HOME_URL     string `validate:"url"`
+	DOMAIN       string `validate:"url"`
 	IS_PROD      bool   `validate:"boolean"`
 	DATABASE_URL string `validate:"url"`
 
@@ -35,7 +35,7 @@ func (base *Base) loadEnv() {
 	}
 
 	env := Env{
-		HOME_URL:                os.Getenv("HOME_URL"),
+		DOMAIN:                  os.Getenv("DOMAIN"),
 		IS_PROD:                 strToBool(os.Getenv("IS_PROD")),
 		DATABASE_URL:            os.Getenv("DATABASE_URL"),
 		STRIPE_PRIVATE_KEY:      os.Getenv("STRIPE_PRIVATE_KEY"),

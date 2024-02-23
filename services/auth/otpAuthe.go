@@ -95,8 +95,8 @@ func (auth *Auth) ValidateOTP(ctx *gin.Context, otpId string) error {
 	return nil
 }
 
-func Signout(ctx *gin.Context) {
-	removeJWTCookie(ctx)
+func (auth *Auth) Signout(ctx *gin.Context) {
+	auth.removeJWTCookie(ctx)
 }
 
 // =====================================================================
@@ -159,7 +159,7 @@ func (auth *Auth) sendOTPEmail(user *authmodels.User, otp *authmodels.Otp) error
 	if err != nil {
 		return err
 	}
-	content := "content uuid: " + fmt.Sprintf("%v/join/otp/%v", auth.base.HOME_URL, uuid.String())
+	content := "content uuid: " + fmt.Sprintf("%v/join/otp/%v", auth.base.DOMAIN, uuid.String())
 	errEmail := auth.base.SendEmail(user.Email, "User", "Town Watch", "Email Verification Link", content)
 	if errEmail != nil {
 		return fmt.Errorf("error OTP email could not be sent: %w", errEmail)

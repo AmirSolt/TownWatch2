@@ -71,7 +71,7 @@ func (auth *Auth) SetJWTCookie(ctx *gin.Context, user *authmodels.User) error {
 		string(jwtEncrypted),
 		jwtExpirationDurationSeconds,
 		"/",
-		"",
+		auth.base.DOMAIN,
 		true,
 		true,
 	)
@@ -101,14 +101,14 @@ func (auth *Auth) ValidateJWTByUser(ctx *gin.Context, jwt *JWT) (*authmodels.Use
 	return &user, nil
 }
 
-func removeJWTCookie(ctx *gin.Context) {
+func (auth *Auth) removeJWTCookie(ctx *gin.Context) {
 
 	ctx.SetCookie(
 		"Authorization",
 		"",
 		jwtExpirationDurationSeconds,
 		"/",
-		"",
+		auth.base.DOMAIN,
 		true,
 		true,
 	)

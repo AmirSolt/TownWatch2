@@ -53,7 +53,7 @@ func (auth *Auth) authRoutes() {
 	})
 
 	auth.base.Engine.GET("/join/signout", auth.RequireUserMiddleware, func(ctx *gin.Context) {
-		Signout(ctx)
+		auth.Signout(ctx)
 		ctx.Redirect(http.StatusFound, "/")
 	})
 }
