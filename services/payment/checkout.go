@@ -9,29 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/checkout/session"
-	"github.com/stripe/stripe-go/v76/customer"
-	"github.com/stripe/stripe-go/v76/paymentmethod"
-	"github.com/stripe/stripe-go/v76/subscription"
 )
-
-func (payment *Payment) Subscribe(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, error) {
-	return payment.createCheckoutSession(c, tierConfig)
-}
-func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, error) {
-	err := payment.CancelSubscription(c)
-	if err != nil {
-		return nil, err
-	}
-	return payment.createCheckoutSession(c, tierConfig)
-}
-func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) error {
-	_, errSub := subscription.Cancel(c.StripeSubscriptionID.String, &stripe.SubscriptionCancelParams{})
-	if errSub != nil {
-		eventId := sentry.CaptureException(errSub)
-		return fmt.Errorf("failed to cancel subscription (%v)", eventId)
-	}
-	return nil
-}
 
 func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, error) {
 
@@ -83,31 +61,6 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 	}
 
 	return result, nil
-}
-
-func (payment *Payment) getPaymentMethods(c *paymentmodels.Customer) *customer.PaymentMethodIter {
-	params := &stripe.CustomerListPaymentMethodsParams{
-		Customer: stripe.String(c.StripeCustomerID.String),
-	}
-	params.Limit = stripe.Int64(5)
-	return customer.ListPaymentMethods(params)
-}
-func (payment *Payment) detachPaymentMethod(paymentMethodID string) error {
-	_, err := paymentmethod.Detach(paymentMethodID, &stripe.PaymentMethodDetachParams{})
-	if err != nil {
-		eventId := sentry.CaptureException(err)
-		return fmt.Errorf("failed to detach payment (%v)", eventId)
-	}
-	return nil
-}
-func (payment *Payment) changeAutoPay(c *paymentmodels.Customer, disable bool) error {
-	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(disable)}
-	_, err := subscription.Update(c.StripeSubscriptionID.String, params)
-	if err != nil {
-		eventId := sentry.CaptureException(err)
-		return fmt.Errorf("failed to change autopay (%v)", eventId)
-	}
-	return nil
 }
 
 func getNewUnitAmount(currentTierConfig TierConfig, targetTierConfig TierConfig) int64 {
