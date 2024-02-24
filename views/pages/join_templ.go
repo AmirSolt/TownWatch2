@@ -11,6 +11,7 @@ import "io"
 import "bytes"
 
 import "townwatch/base/basetemplates"
+import "townwatch/services/auth/authtemplates"
 
 func JoinPage() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -29,7 +30,11 @@ func JoinPage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Email\r</h1><form action=\"/join/signin\" method=\"POST\"><input class=\"input\" type=\"email\" name=\"email\" placeholder=\"example@email.com\"><p>By registering you agree to policy\r</p><button class=\"btn btn-nrm\" type=\"submit\">Submit\r</button></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Email\r</h1>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = authtemplates.SigninForm().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -57,7 +62,11 @@ func VerifyPage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>✔ Verification Email Sent\r</h1><form action=\"\"><p>A link has been sent to your inbox. Please wait a few minutes, if you do not recieve an email after 5 minutes, try resend.\r</p><button class=\"btn btn-outline\" type=\"submit\">Resend\r</button></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>✔ Verification Email Sent\r</h1>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = authtemplates.ResendVerificationDiv().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

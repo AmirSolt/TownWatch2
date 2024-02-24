@@ -32,3 +32,29 @@ templ DebugUserButton(user *authmodels.User, name string) {
 		</form>
 	}
 }
+
+
+templ SigninForm() {
+	<form action="/join/signin" method="POST">
+		<input class="input" type="email" name="email" placeholder="example@email.com"></input>
+		<p>
+			By registering you agree to policy
+		</p>
+		
+		<button class="btn btn-nrm" type="submit">
+			Submit
+		</button>
+	</form>
+}
+
+
+templ ResendVerificationDiv() {
+	<div>
+		<p>
+			A link has been sent to your inbox. Please wait a few minutes, if you do not recieve an email after 5 minutes, try resend.
+		</p>
+		<a href="/join" class="btn btn-outline" type="submit">
+			Resend
+		</a>
+	</div>
+}
