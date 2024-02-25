@@ -1,0 +1,18 @@
+package pages
+
+import "townwatch/services/payment/paymenttemplates"
+import "townwatch/services/payment/paymentmodels"
+import "townwatch/services/payment"
+
+templ WalletPage(customer *paymentmodels.Customer, TierConfigs map[paymentmodels.TierID]payment.TierConfig) {
+	<h1>
+		Tiers
+	</h1>
+	<p>
+		tiers you can asd
+	</p>
+	// ================
+	for _, tierConfig := range TierConfigs {
+		@paymenttemplates.WalletTier(customer, tierConfig)
+	}
+}

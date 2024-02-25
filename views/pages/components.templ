@@ -4,6 +4,28 @@ import "townwatch/base/basetemplates"
 import "townwatch/services/auth/authmodels"
 import "townwatch/services/auth/authtemplates"
 
+templ Page(user *authmodels.User, isProd bool, Comp templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@Head("Home")
+		<body>
+			@Header(user)
+			@Comp
+			@Footer(user, isProd)
+		</body>
+	</html>
+}
+
+templ PageNoLayout(Comp templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		@Head("Home")
+		<body>
+			@Comp
+		</body>
+	</html>
+}
+
 templ Head(title string) {
 	<head>
 		<meta charset="UTF-8"/>

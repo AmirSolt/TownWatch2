@@ -5,17 +5,18 @@ import (
 	"townwatch/base"
 	"townwatch/services/auth"
 	"townwatch/services/auth/authmodels"
+	"townwatch/services/payment"
 
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterPagesRoutes(base *base.Base, auth *auth.Auth) {
+func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payemnt *payment.Payment) {
 
 	base.Engine.GET("/join", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
-		JoinPage().Render(ctx, ctx.Writer)
+		PageNoLayout(JoinPage()).Render(ctx, ctx.Writer)
 	})
 	base.Engine.GET("/join/verif", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
-		VerifyPage().Render(ctx, ctx.Writer)
+		PageNoLayout(VerifyPage()).Render(ctx, ctx.Writer)
 	})
 
 	base.Engine.GET("/", auth.OptionalUserMiddleware, func(ctx *gin.Context) {
@@ -27,7 +28,7 @@ func RegisterPagesRoutes(base *base.Base, auth *auth.Auth) {
 
 		fmt.Println(".>>>>>>>>>>", user)
 
-		IndexPage(user, base.IS_PROD).Render(ctx, ctx.Writer)
+		Page(user, base.IS_PROD, IndexPage()).Render(ctx, ctx.Writer)
 	})
 
 }

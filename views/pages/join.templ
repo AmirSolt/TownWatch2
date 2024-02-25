@@ -3,31 +3,18 @@ package pages
 import "townwatch/base/basetemplates"
 import "townwatch/services/auth/authtemplates"
 
-
 templ JoinPage() {
-
-
 	@basetemplates.Brand()
-
 	<h1>
 		Email
 	</h1>
-
-	
 	@authtemplates.SigninForm()
 }
 
-
 templ VerifyPage() {
-
-
 	@basetemplates.Brand()
-
 	<h1>
 		✔ Verification Email Sent
 	</h1>
-
-
 	@authtemplates.ResendVerificationDiv()
-
 }
