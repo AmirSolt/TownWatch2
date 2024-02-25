@@ -36,7 +36,7 @@ func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 		auth:        auth,
 		TierConfigs: loadTierConfigs(),
 	}
-	payment.loadStripe()
+	// payment.loadStripe()
 	payment.registerPaymentRoutes()
 
 	return &payment

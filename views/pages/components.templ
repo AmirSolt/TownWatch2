@@ -57,6 +57,12 @@ templ Header(user *authmodels.User) {
 }
 
 templ Footer(user *authmodels.User, isProd bool) {
+	<br/>
+	<br/>
+	<br/>
+	<hr/>
+	<hr/>
+	<hr/>
 	<footer>
 		if !isProd {
 			@authtemplates.DebugGuestButton(user)

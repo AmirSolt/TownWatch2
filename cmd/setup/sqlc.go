@@ -37,9 +37,15 @@ type genConfig struct {
 	Go goLangConfig `yaml:"go"`
 }
 type goLangConfig struct {
-	Package    string `yaml:"package"`
-	Out        string `yaml:"out"`
-	SqlPackage string `yaml:"sql_package"`
+	Package                string `yaml:"package"`
+	Out                    string `yaml:"out"`
+	SqlPackage             string `yaml:"sql_package"`
+	OutputBatchFileName    string `yaml:"output_batch_file_name"`
+	OutputDbFileName       string `yaml:"output_db_file_name"`
+	OutputModelsFileName   string `yaml:"output_models_file_name"`
+	OutputQuerierFileName  string `yaml:"output_querier_file_name"`
+	OutputCopyfromFileName string `yaml:"output_copyfrom_file_name"`
+	// OutputFilesSuffix      string `yaml:"output_files_suffix"`
 }
 
 func getServicesWithSQL() []string {
@@ -76,9 +82,15 @@ func updateSqlcConfig() {
 			Queries: queryFilePath,
 			Gen: genConfig{
 				Go: goLangConfig{
-					Package:    fmt.Sprintf("%smodels", name),
-					Out:        fmt.Sprintf("services/%s/%smodels", name, name),
-					SqlPackage: "pgx/v5",
+					Package:                fmt.Sprintf("%smodels", name),
+					Out:                    fmt.Sprintf("services/%s/%smodels", name, name),
+					SqlPackage:             "pgx/v5",
+					OutputBatchFileName:    "batch_sqlc.go",
+					OutputDbFileName:       "db_sqlc.go",
+					OutputModelsFileName:   "models_sqlc.go",
+					OutputQuerierFileName:  "querier_sqlc.go",
+					OutputCopyfromFileName: "copyfrom_sqlc.go",
+					// OutputFilesSuffix:      "",
 				},
 			},
 		})

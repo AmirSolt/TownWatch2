@@ -8,6 +8,11 @@ sql:
             package: authmodels
             out: services/auth/authmodels
             sql_package: pgx/v5
+            output_batch_file_name: batch_sqlc.go
+            output_db_file_name: db_sqlc.go
+            output_models_file_name: models_sqlc.go
+            output_querier_file_name: querier_sqlc.go
+            output_copyfrom_file_name: copyfrom_sqlc.go
     - engine: postgresql
       queries: services/payment/paymentmodels/sql/query.sql
       schema: services/payment/paymentmodels/sql/schema.sql
@@ -16,3 +21,8 @@ sql:
             package: paymentmodels
             out: services/payment/paymentmodels
             sql_package: pgx/v5
+            output_batch_file_name: batch_sqlc.go
+            output_db_file_name: db_sqlc.go
+            output_models_file_name: models_sqlc.go
+            output_querier_file_name: querier_sqlc.go
+            output_copyfrom_file_name: copyfrom_sqlc.go
