@@ -3,6 +3,10 @@
 SELECT * FROM customers
 WHERE id = $1 LIMIT 1;
 
+-- name: GetCustomerByUserID :one
+SELECT * FROM customers
+WHERE user_id = $1 LIMIT 1;
+
 -- name: GetCustomerByStripeCustomerID :one
 SELECT * FROM customers
 WHERE stripe_customer_id = $1 LIMIT 1;

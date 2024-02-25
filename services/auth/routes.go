@@ -3,7 +3,7 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	authtemplates "townwatch/base/basetemplates"
+	"townwatch/base/basetemplates"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
@@ -30,12 +30,12 @@ func (auth *Auth) authRoutes() {
 		if email == "" {
 			eventId := sentry.CaptureException(fmt.Errorf("email not found on postFrom. ctx: %+v", ctx))
 			err := fmt.Errorf("email missing from the form (%v)", eventId)
-			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			basetemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}
 		err := auth.InitOTP(ctx, email)
 		if err != nil {
-			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			basetemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}
 		ctx.Redirect(http.StatusFound, "/join/verif")
@@ -46,7 +46,7 @@ func (auth *Auth) authRoutes() {
 		otpID := ctx.Param("id")
 		errVOTP := auth.ValidateOTP(ctx, otpID)
 		if errVOTP != nil {
-			authtemplates.Error(errVOTP).Render(ctx, ctx.Writer)
+			basetemplates.Error(errVOTP).Render(ctx, ctx.Writer)
 			return
 		}
 		ctx.Redirect(http.StatusFound, "/")
@@ -66,12 +66,12 @@ func (auth *Auth) authTestRoutes() {
 		if email == "" {
 			eventId := sentry.CaptureException(fmt.Errorf("email not found on postFrom. ctx: %+v", ctx))
 			err := fmt.Errorf("email missing from the form (%v)", eventId)
-			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			basetemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}
 		err := auth.DebugOTP(ctx, email)
 		if err != nil {
-			authtemplates.Error(err).Render(ctx, ctx.Writer)
+			basetemplates.Error(err).Render(ctx, ctx.Writer)
 			return
 		}
 		ctx.Redirect(http.StatusFound, "/")

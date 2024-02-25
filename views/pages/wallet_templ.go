@@ -14,7 +14,7 @@ import "townwatch/services/payment/paymenttemplates"
 import "townwatch/services/payment/paymentmodels"
 import "townwatch/services/payment"
 
-func WalletPage(TierConfigs map[paymentmodels.TierID]payment.TierConfig) templ.Component {
+func WalletPage(customer *paymentmodels.Customer, TierConfigs map[paymentmodels.TierID]payment.TierConfig) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -32,7 +32,7 @@ func WalletPage(TierConfigs map[paymentmodels.TierID]payment.TierConfig) templ.C
 			return templ_7745c5c3_Err
 		}
 		for _, tierConfig := range TierConfigs {
-			templ_7745c5c3_Err = paymenttemplates.WalletTier(tierConfig).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = paymenttemplates.WalletTier(customer, tierConfig).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

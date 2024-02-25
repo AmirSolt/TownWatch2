@@ -12,7 +12,7 @@ import (
 )
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id FROM customers
+SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
 WHERE id = $1 LIMIT 1
 `
 
@@ -26,12 +26,13 @@ func (q *Queries) GetCustomer(ctx context.Context, id int32) (Customer, error) {
 		&i.TierID,
 		&i.StripeCustomerID,
 		&i.StripeSubscriptionID,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const getCustomerByStripeCustomerID = `-- name: GetCustomerByStripeCustomerID :one
-SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id FROM customers
+SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
 WHERE stripe_customer_id = $1 LIMIT 1
 `
 
@@ -45,6 +46,27 @@ func (q *Queries) GetCustomerByStripeCustomerID(ctx context.Context, stripeCusto
 		&i.TierID,
 		&i.StripeCustomerID,
 		&i.StripeSubscriptionID,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getCustomerByUserID = `-- name: GetCustomerByUserID :one
+SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
+WHERE user_id = $1 LIMIT 1
+`
+
+func (q *Queries) GetCustomerByUserID(ctx context.Context, userID pgtype.UUID) (Customer, error) {
+	row := q.db.QueryRow(ctx, getCustomerByUserID, userID)
+	var i Customer
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Email,
+		&i.TierID,
+		&i.StripeCustomerID,
+		&i.StripeSubscriptionID,
+		&i.UserID,
 	)
 	return i, err
 }

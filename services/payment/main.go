@@ -26,7 +26,7 @@ type TierConfig struct {
 	Level    int64
 }
 
-func LoadAuth(base *base.Base, auth *auth.Auth) *Payment {
+func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 
 	queries := paymentmodels.New(base.Conn)
 

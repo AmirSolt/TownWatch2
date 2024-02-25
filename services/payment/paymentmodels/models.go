@@ -61,12 +61,5 @@ type Customer struct {
 	TierID               TierID
 	StripeCustomerID     pgtype.Text
 	StripeSubscriptionID pgtype.Text
-}
-
-type Otp struct {
-	ID        pgtype.UUID
-	CreatedAt pgtype.Timestamptz
-	ExpiresAt pgtype.Timestamptz
-	IsActive  bool
-	UserID    pgtype.UUID
+	UserID               pgtype.UUID
 }
