@@ -32,7 +32,7 @@ func WalletPage(customer *paymentmodels.Customer, TierConfigs map[paymentmodels.
 			return templ_7745c5c3_Err
 		}
 		for _, tierConfig := range TierConfigs {
-			templ_7745c5c3_Err = paymenttemplates.WalletTier(customer, tierConfig).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = paymenttemplates.WalletTier(customer, tierConfig, TierConfigs).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

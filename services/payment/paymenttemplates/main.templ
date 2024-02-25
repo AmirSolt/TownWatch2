@@ -3,6 +3,27 @@ package paymenttemplates
 import "townwatch/services/payment"
 import "townwatch/services/payment/paymentmodels"
 
-templ WalletTier(customer *paymentmodels.Customer, tierConfig payment.TierConfig) {
-	<h1>Wallet</h1>
+templ WalletTier(customer *paymentmodels.Customer, tierConfig payment.TierConfig, TierConfigs map[paymentmodels.TierID]payment.TierConfig) {
+	<div>
+		<p>{ tierConfig.Name } </p>
+		<p>{ string(tierConfig.Amount) }/{ tierConfig.Interval } </p>
+		if customer.TierID == tierConfig.TierID {
+			<p><strike>Auto </strike> </p>
+		} else {
+			<p><strike>Auto </strike> </p>
+		}
+		if TierConfigs[customer.TierID].Level == tierConfig.Level {
+			<form action={ templ.SafeURL("/subscription/cancel/" + tierConfig.TierID) } method="get">
+				<button type="submit">Cancel</button>
+			</form>
+		} else if TierConfigs[customer.TierID].Level > tierConfig.Level {
+			<form action={ templ.SafeURL("/subscription/change/" + tierConfig.TierID) } method="get">
+				<button type="submit">Downgrade</button>
+			</form>
+		} else {
+			<form action={ templ.SafeURL("/subscription/change/" + tierConfig.TierID) } method="get">
+				<button type="submit">Upgrade</button>
+			</form>
+		}
+	</div>
 }

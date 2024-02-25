@@ -1,5 +1,14 @@
 package payment
 
+import (
+	"fmt"
+	"townwatch/base/basetemplates"
+	"townwatch/services/auth/authmodels"
+	"townwatch/services/payment/paymentmodels"
+
+	"github.com/getsentry/sentry-go"
+	"github.com/gin-gonic/gin"
+)
 
 func (payment *Payment) registerPaymentRoutes() {
 	payment.paymentRoutes()
@@ -8,35 +17,66 @@ func (payment *Payment) registerPaymentRoutes() {
 
 func (payment *Payment) paymentRoutes() {
 
-	// payment.base.GET("/pricing", payment.auth.OptionalUserMiddleware, func(c *gin.Context) {
+	payment.base.GET("/subscription/create/:tierID", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
+		tierIDTemp := ctx.Param("tierID")
+		tierID := paymentmodels.TierID(tierIDTemp)
+		usertemp, _ := ctx.Get("user")
+		user := usertemp.(*authmodels.User)
+		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			return
+		}
+		checkoutSession, err := payment.Subscribe(&customer, payment.TierConfigs[tierID])
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			return
+		}
 
-	// 	c.HTML(http.StatusOK, "pricing.tmpl", gin.H{
-	// 		"data": pricingLoad{
-	// 			pageLoad: pageLoad{
-	// 				Title: "Pricing",
-	// 			},
-	// 			Tier1: models.TierT1,
-	// 			Tier2: models.TierT2,
-	// 		},
-	// 	})
+		ctx.Redirect(302, checkoutSession.URL)
 
-	// })
+	})
 
-	// payment.base.GET("/checkout/:tier", payment.auth.RequireUserMiddleware, func(c *gin.Context) {
-	// 	c.String(200, c.Param("tier"))
-	// })
+	payment.base.GET("/subscription/cancel/:tierID", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
+		usertemp, _ := ctx.Get("user")
+		user := usertemp.(*authmodels.User)
+		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			basetemplates.Error(fmt.Errorf("failed to cancel subscription (%v)", eventId)).Render(ctx, ctx.Writer)
+			return
+		}
+		errCust := payment.CancelSubscription(&customer)
+		if errCust != nil {
+			eventId := sentry.CaptureException(errCust)
+			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			return
+		}
 
-	// payment.base.GET("/wallet", payment.auth.RequireUserMiddleware, func(c *gin.Context) {
+		ctx.Redirect(302, "/user/wallet")
+	})
 
-	// 	c.HTML(http.StatusOK, "wallet.tmpl", gin.H{
-	// 		"data": walletLoad{
-	// 			pageLoad: pageLoad{
-	// 				Title: "Wallet",
-	// 			},
-	// 			TierDisplays: &tierDisplays,
-	// 		},
-	// 	})
+	payment.base.GET("/subscription/change/:tierID", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
+		tierIDTemp := ctx.Param("tierID")
+		tierID := paymentmodels.TierID(tierIDTemp)
+		usertemp, _ := ctx.Get("user")
+		user := usertemp.(*authmodels.User)
+		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			return
+		}
+		checkoutSession, err := payment.ChangeSubscriptionTier(&customer, payment.TierConfigs[tierID])
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			return
+		}
 
-	// })
+		ctx.Redirect(302, checkoutSession.URL)
+	})
 
 }

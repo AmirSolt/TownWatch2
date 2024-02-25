@@ -1,8 +1,9 @@
 package pages
 
 import "townwatch/services/payment/paymentmodels"
+import "townwatch/services/auth/authmodels"
 
-templ PricingPage() {
+templ PricingPage(user *authmodels.User) {
 	<h2>
 		Choose a subscription plan that works for you
 	</h2>
@@ -35,9 +36,15 @@ templ PricingPage() {
 		<p>
 			Total: $96 + tax
 		</p>
-		<a href={ templ.SafeURL("/checkout/" + string(paymentmodels.TierIDT1)) } class="btn btn-nrm" type="submit">
-			Next
-		</a>
+		if user != nil {
+			<a href={ templ.SafeURL("/subscription/create/" + paymentmodels.TierIDT2) } class="btn btn-nrm">
+				Next
+			</a>
+		} else {
+			<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
+				Next
+			</a>
+		}
 	</div>
 	// ===============================
 	<div>
@@ -48,8 +55,14 @@ templ PricingPage() {
 		<h2>
 			$15.99/Month + tax
 		</h2>
-		<a href={ templ.SafeURL("/checkout/" + string(paymentmodels.TierIDT2)) } class="btn btn-nrm" type="submit">
-			Next
-		</a>
+		if user != nil {
+			<a href={ templ.SafeURL("/subscription/create/" + paymentmodels.TierIDT1) } class="btn btn-nrm">
+				Next
+			</a>
+		} else {
+			<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
+				Next
+			</a>
+		}
 	</div>
 }

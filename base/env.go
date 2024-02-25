@@ -14,6 +14,7 @@ type Env struct {
 	IS_PROD      bool   `validate:"boolean"`
 	DATABASE_URL string `validate:"url"`
 
+	STRIPE_PUBLIC_KEY  string `validate:"required"`
 	STRIPE_PRIVATE_KEY string `validate:"required"`
 	STRIPE_WEBHOOK_KEY string `validate:"required"`
 
@@ -38,6 +39,7 @@ func (base *Base) loadEnv() {
 		DOMAIN:                  os.Getenv("DOMAIN"),
 		IS_PROD:                 strToBool(os.Getenv("IS_PROD")),
 		DATABASE_URL:            os.Getenv("DATABASE_URL"),
+		STRIPE_PUBLIC_KEY:       os.Getenv("STRIPE_PUBLIC_KEY"),
 		STRIPE_PRIVATE_KEY:      os.Getenv("STRIPE_PRIVATE_KEY"),
 		STRIPE_WEBHOOK_KEY:      os.Getenv("STRIPE_WEBHOOK_KEY"),
 		ARCGIS_TORONTO_URL:      os.Getenv("ARCGIS_TORONTO_URL"),

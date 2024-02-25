@@ -13,6 +13,6 @@ templ WalletPage(customer *paymentmodels.Customer, TierConfigs map[paymentmodels
 	</p>
 	// ================
 	for _, tierConfig := range TierConfigs {
-		@paymenttemplates.WalletTier(customer, tierConfig)
+		@paymenttemplates.WalletTier(customer, tierConfig, TierConfigs)
 	}
 }

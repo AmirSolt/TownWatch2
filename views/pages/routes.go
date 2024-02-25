@@ -29,7 +29,7 @@ func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payment *payment.Paym
 			user = usertemp.(*authmodels.User)
 		}
 
-		Page(user, base.IS_PROD, PricingPage()).Render(ctx, ctx.Writer)
+		Page(user, base.IS_PROD, PricingPage(user)).Render(ctx, ctx.Writer)
 	})
 	base.Engine.GET("/user/wallet", auth.RequireUserMiddleware, func(ctx *gin.Context) {
 		usertemp, _ := ctx.Get("user")
