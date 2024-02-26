@@ -17,38 +17,38 @@ import (
 	"github.com/stripe/stripe-go/v76/webhook"
 )
 
-func (payment *Payment) HandleStripeWebhook(ginContext *gin.Context) {
+func (payment *Payment) HandleStripeWebhook(ctx *gin.Context) {
 	// ==================================================================
 	// The signature check is pulled directly from Stripe and it's not tested
-	req := ginContext.Request
-	w := ginContext.Writer
+	// req := ctx.Request
+	// w := ctx.Writer
 
 	const MaxBodyBytes = int64(65536)
-	req.Body = http.MaxBytesReader(w, req.Body, MaxBodyBytes)
-	payload, err := io.ReadAll(req.Body)
+	ctx.Request.Body = http.MaxBytesReader(ctx.Writer, ctx.Request.Body, MaxBodyBytes)
+	payload, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading request body: %v\n", err)
-		w.WriteHeader(http.StatusServiceUnavailable)
+		ctx.Writer.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}
 
 	endpointSecret := payment.base.STRIPE_WEBHOOK_KEY
-	event, err := webhook.ConstructEvent(payload, req.Header.Get("Stripe-Signature"),
+	event, err := webhook.ConstructEvent(payload, ctx.Request.Header.Get("Stripe-Signature"),
 		endpointSecret)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error verifying webhook signature: %v\n", err)
-		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
+		eventId := sentry.CaptureException(err)
+		ctx.String(http.StatusBadRequest, fmt.Errorf("error verifying webhook signature. EventID: %s", *eventId).Error())
 		return
 	}
 	// ==================================================================
 
 	if err := payment.handleStripeEvents(event); err != nil {
-		fmt.Fprintf(os.Stderr, "Error handling event: %v\n", err)
-		w.WriteHeader(http.StatusBadRequest) // Return a 400 error on a bad signature
+		eventId := sentry.CaptureException(err)
+		ctx.String(http.StatusBadRequest, fmt.Errorf("error handling stripe event. EventID: %s", *eventId).Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	ctx.Writer.WriteHeader(http.StatusOK)
 }
 
 func (payment *Payment) handleStripeEvents(event stripe.Event) error {
@@ -65,8 +65,7 @@ func (payment *Payment) handleStripeEvents(event stripe.Event) error {
 
 		customer, errCust := payment.Queries.GetCustomerByStripeCustomerID(context.Background(), pgtype.Text{String: cust.ID})
 		if errCust != nil {
-			eventId := sentry.CaptureException(errCust)
-			return fmt.Errorf("error eventID: %v", eventId)
+			return errCust
 		}
 
 		errUpd := payment.Queries.UpdateCustomerSubAndTier(context.Background(), paymentmodels.UpdateCustomerSubAndTierParams{
@@ -75,8 +74,7 @@ func (payment *Payment) handleStripeEvents(event stripe.Event) error {
 			ID:                   customer.ID,
 		})
 		if errUpd != nil {
-			eventId := sentry.CaptureException(errUpd)
-			return fmt.Errorf("error eventID: %v", eventId)
+			return errUpd
 		}
 
 		return nil
@@ -94,8 +92,7 @@ func (payment *Payment) handleStripeEvents(event stripe.Event) error {
 
 		customer, errCust := payment.Queries.GetCustomerByStripeCustomerID(context.Background(), pgtype.Text{String: cust.ID})
 		if errCust != nil {
-			eventId := sentry.CaptureException(errCust)
-			return fmt.Errorf("error eventID: %v", eventId)
+			return errCust
 		}
 
 		if customer.StripeSubscriptionID.String == subsc.ID {
@@ -105,8 +102,7 @@ func (payment *Payment) handleStripeEvents(event stripe.Event) error {
 				ID:                   customer.ID,
 			})
 			if errUpd != nil {
-				eventId := sentry.CaptureException(errUpd)
-				return fmt.Errorf("error eventID: %v", eventId)
+				return errUpd
 			}
 		}
 		return nil

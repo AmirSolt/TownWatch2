@@ -3,7 +3,6 @@ package auth
 import (
 	"fmt"
 	"net/http"
-	"townwatch/base/basetemplates"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
@@ -28,14 +27,15 @@ func (auth *Auth) authRoutes() {
 
 		email := ctx.PostForm("email")
 		if email == "" {
-			eventId := sentry.CaptureException(fmt.Errorf("email not found on postFrom. ctx: %+v", ctx))
-			err := fmt.Errorf("email missing from the form (%v)", eventId)
-			basetemplates.Error(err).Render(ctx, ctx.Writer)
+			errDev := fmt.Errorf("email not found on postFrom. ctx: %+v", ctx)
+			eventId := sentry.CaptureException(errDev)
+			errUser := fmt.Errorf("email missing from the form (%s)", *eventId)
+			ctx.String(http.StatusBadRequest, errUser.Error())
 			return
 		}
-		err := auth.InitOTP(ctx, email)
-		if err != nil {
-			basetemplates.Error(err).Render(ctx, ctx.Writer)
+		errComm := auth.InitOTP(ctx, email)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 		ctx.Redirect(http.StatusFound, "/join/verif")
@@ -44,9 +44,9 @@ func (auth *Auth) authRoutes() {
 	auth.base.Engine.GET("/join/otp/:id", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
 
 		otpID := ctx.Param("id")
-		errVOTP := auth.ValidateOTP(ctx, otpID)
-		if errVOTP != nil {
-			basetemplates.Error(errVOTP).Render(ctx, ctx.Writer)
+		errComm := auth.ValidateOTP(ctx, otpID)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 		ctx.Redirect(http.StatusFound, "/")
@@ -64,14 +64,15 @@ func (auth *Auth) authTestRoutes() {
 
 		email := ctx.PostForm("email")
 		if email == "" {
-			eventId := sentry.CaptureException(fmt.Errorf("email not found on postFrom. ctx: %+v", ctx))
-			err := fmt.Errorf("email missing from the form (%v)", eventId)
-			basetemplates.Error(err).Render(ctx, ctx.Writer)
+			errDev := fmt.Errorf("email not found on postFrom. ctx: %+v", ctx)
+			eventId := sentry.CaptureException(errDev)
+			errUser := fmt.Errorf("email missing from the form (%s)", *eventId)
+			ctx.String(http.StatusBadRequest, errUser.Error())
 			return
 		}
-		err := auth.DebugOTP(ctx, email)
-		if err != nil {
-			basetemplates.Error(err).Render(ctx, ctx.Writer)
+		errComm := auth.DebugOTP(ctx, email)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 		ctx.Redirect(http.StatusFound, "/")

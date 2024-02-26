@@ -20,7 +20,7 @@ func main() {
 	pages.RegisterPagesRoutes(&base, auth, payment)
 
 	fmt.Println("=======")
-	fmt.Println("http://localhost:8080")
+	fmt.Println(base.DOMAIN)
 	fmt.Println("=======")
 
 	base.Run()

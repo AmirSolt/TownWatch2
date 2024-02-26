@@ -2,7 +2,7 @@ package payment
 
 import (
 	"fmt"
-	"townwatch/base/basetemplates"
+	"net/http"
 	"townwatch/services/auth/authmodels"
 	"townwatch/services/payment/paymentmodels"
 
@@ -25,13 +25,12 @@ func (payment *Payment) paymentRoutes() {
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
 		if err != nil {
 			eventId := sentry.CaptureException(err)
-			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, err := payment.Subscribe(&customer, payment.TierConfigs[tierID])
-		if err != nil {
-			eventId := sentry.CaptureException(err)
-			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+		checkoutSession, errComm := payment.Subscribe(&customer, payment.TierConfigs[tierID])
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
@@ -45,13 +44,12 @@ func (payment *Payment) paymentRoutes() {
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
 		if err != nil {
 			eventId := sentry.CaptureException(err)
-			basetemplates.Error(fmt.Errorf("failed to cancel subscription (%v)", eventId)).Render(ctx, ctx.Writer)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to cancel subscription (%s)", *eventId).Error())
 			return
 		}
-		errCust := payment.CancelSubscription(&customer)
-		if errCust != nil {
-			eventId := sentry.CaptureException(errCust)
-			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+		errComm := payment.CancelSubscription(&customer)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
@@ -66,13 +64,12 @@ func (payment *Payment) paymentRoutes() {
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
 		if err != nil {
 			eventId := sentry.CaptureException(err)
-			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, err := payment.ChangeSubscriptionTier(&customer, payment.TierConfigs[tierID])
-		if err != nil {
-			eventId := sentry.CaptureException(err)
-			basetemplates.Error(fmt.Errorf("failed to create checkout session (%v)", eventId)).Render(ctx, ctx.Writer)
+		checkoutSession, errComm := payment.ChangeSubscriptionTier(&customer, payment.TierConfigs[tierID])
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 

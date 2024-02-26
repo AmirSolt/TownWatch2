@@ -3,6 +3,7 @@ package payment
 import (
 	"context"
 	"fmt"
+	"townwatch/base"
 	"townwatch/services/payment/paymentmodels"
 
 	"github.com/getsentry/sentry-go"
@@ -11,7 +12,7 @@ import (
 	"github.com/stripe/stripe-go/v76/checkout/session"
 )
 
-func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, error) {
+func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, *base.ErrorComm) {
 
 	var customerID *string = nil
 	if c.StripeCustomerID.Valid {
@@ -22,8 +23,8 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 		Customer:      customerID,
 		Mode:          stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 		CustomerEmail: stripe.String(c.Email),
-		ReturnURL:     stripe.String(payment.base.DOMAIN),
-		SuccessURL:    stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
+		// ReturnURL:     stripe.String(payment.base.DOMAIN),
+		SuccessURL: stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
@@ -46,7 +47,11 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 	result, err := session.New(params)
 	if err != nil {
 		eventId := sentry.CaptureException(err)
-		return nil, fmt.Errorf("checkout session creation failed (%v)", eventId)
+		return nil, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("checkout session creation failed (%s)", *eventId),
+			DevMsg:  err,
+		}
 	}
 
 	if customerID == nil {
@@ -56,7 +61,11 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 		})
 		if err != nil {
 			eventId := sentry.CaptureException(err)
-			return nil, fmt.Errorf("checkout session creation failed (%v)", eventId)
+			return nil, &base.ErrorComm{
+				EventID: eventId,
+				UserMsg: fmt.Errorf("checkout session creation failed (%s)", *eventId),
+				DevMsg:  err,
+			}
 		}
 	}
 

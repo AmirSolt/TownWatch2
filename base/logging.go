@@ -8,7 +8,11 @@ import (
 	sentrygin "github.com/getsentry/sentry-go/gin"
 )
 
-// Error tracking component
+type ErrorComm struct {
+	*sentry.EventID
+	UserMsg error
+	DevMsg  error
+}
 
 func (base *Base) loadLogging() {
 	err := sentry.Init(sentry.ClientOptions{

@@ -1,10 +1,9 @@
 package pages
 
-import "townwatch/base/basetemplates"
 import "townwatch/services/auth/authtemplates"
 
 templ JoinPage() {
-	@basetemplates.Brand()
+	@Brand()
 	<h1>
 		Email
 	</h1>
@@ -12,7 +11,7 @@ templ JoinPage() {
 }
 
 templ VerifyPage() {
-	@basetemplates.Brand()
+	@Brand()
 	<h1>
 		✔ Verification Email Sent
 	</h1>

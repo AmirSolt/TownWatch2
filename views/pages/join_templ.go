@@ -10,7 +10,6 @@ import "context"
 import "io"
 import "bytes"
 
-import "townwatch/base/basetemplates"
 import "townwatch/services/auth/authtemplates"
 
 func JoinPage() templ.Component {
@@ -26,7 +25,7 @@ func JoinPage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = basetemplates.Brand().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Brand().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -58,7 +57,7 @@ func VerifyPage() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = basetemplates.Brand().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Brand().Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

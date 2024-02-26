@@ -2,8 +2,8 @@ package pages
 
 import (
 	"fmt"
+	"net/http"
 	"townwatch/base"
-	"townwatch/base/basetemplates"
 	"townwatch/services/auth"
 	"townwatch/services/auth/authmodels"
 	"townwatch/services/payment"
@@ -37,7 +37,8 @@ func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payment *payment.Paym
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
 		if err != nil {
 			eventId := sentry.CaptureException(err)
-			basetemplates.Error(fmt.Errorf("failed to cancel subscription (%v)", eventId)).Render(ctx, ctx.Writer)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to find customer (%s)", *eventId).Error())
+			return
 		}
 
 		Page(user, base.IS_PROD, WalletPage(&customer, payment.TierConfigs)).Render(ctx, ctx.Writer)

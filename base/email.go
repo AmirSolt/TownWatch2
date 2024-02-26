@@ -21,7 +21,7 @@ type EmailPayload struct {
 	ContentHTML string `json:"contentHTML"`
 }
 
-func (base *Base) SendEmail(toEmail, toName, fromName, subject, content string) error {
+func (base *Base) SendEmail(toEmail, toName, fromName, subject, content string) *ErrorComm {
 	payload := EmailPayload{
 		ApiKey:      base.EMAIL_CF_WORKER_API_KEY,
 		ToEmail:     toEmail,
@@ -30,32 +30,49 @@ func (base *Base) SendEmail(toEmail, toName, fromName, subject, content string) 
 		Subject:     subject,
 		ContentHTML: content,
 	}
-
+	fmt.Println("==================================")
 	fmt.Printf("\n>> Email Payload: %+v \n\n", payload)
+	fmt.Println("==================================")
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		eventId := sentry.CaptureException(err)
-		return fmt.Errorf("failed to send email (%v)", eventId)
+		return &ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to send email (%s)", *eventId),
+			DevMsg:  err,
+		}
 	}
 
 	encrypted, err := jwe.Encrypt(payloadBytes, jwe.WithKey(jwa.A128GCMKW, []byte(base.EMAIL_SECRET_KEY)))
 	if err != nil {
 		eventId := sentry.CaptureException(err)
-		return fmt.Errorf("failed to send email (%v)", eventId)
+		return &ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to send email (%s)", *eventId),
+			DevMsg:  err,
+		}
 	}
 
 	resp, err := http.Post(base.EMAIL_CF_WORKER_URL, "application/json", bytes.NewBuffer(encrypted))
 	if err != nil {
 		eventId := sentry.CaptureException(err)
-		return fmt.Errorf("failed to send email (%v)", eventId)
+		return &ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to send email (%s)", *eventId),
+			DevMsg:  err,
+		}
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		eventId := sentry.CaptureException(fmt.Errorf("email failed response. response: %v | ", string(bodyBytes)))
-		return fmt.Errorf("failed to send email (%v)", eventId)
+		return &ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to send email (%s)", *eventId),
+			DevMsg:  err,
+		}
 	}
 
 	return nil

@@ -13,3 +13,13 @@ CREATE TABLE customers (
     user_id uuid NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE FUNCTION customer_insert() RETURNS trigger AS $$
+    BEGIN
+        INSERT INTO customers(email, user_id)
+		 VALUES(NEW.email, NEW.id);
+        RETURN NEW;
+    END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER create_customer_on_user AFTER INSERT OR UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION customer_insert();
