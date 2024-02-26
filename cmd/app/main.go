@@ -14,6 +14,7 @@ func main() {
 	}
 
 	base.LoadBase()
+	defer base.Kill()
 	auth := auth.LoadAuth(&base)
 	payment := payment.LoadPayment(&base, auth)
 
@@ -24,5 +25,4 @@ func main() {
 	fmt.Println("=======")
 
 	base.Run()
-	base.Kill()
 }

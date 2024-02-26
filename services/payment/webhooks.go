@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -52,11 +53,45 @@ func (payment *Payment) HandleStripeWebhook(ctx *gin.Context) {
 }
 
 func (payment *Payment) handleStripeEvents(event stripe.Event) error {
-	if event.Type == "customer.subscription.created" {
-		cust, err := customer.Get(event.Data.Object["customer"].(string), nil)
+
+	if event.Type == "customer.created" {
+		jsonCustomer, err := json.Marshal(event.Data.Object)
 		if err != nil {
-			return fmt.Errorf("converting raw event to customer object: %w", err)
+			return fmt.Errorf("converting raw event to customer json: %w", err)
 		}
+		var cust *stripe.Customer
+		err = json.Unmarshal(jsonCustomer, &cust)
+		if err != nil {
+			return fmt.Errorf("converting raw event to customer json: %w", err)
+		}
+
+		fmt.Println("=================")
+		fmt.Printf("\n cust: %+v \n", cust)
+		fmt.Println("=================")
+
+		// if result.Customer != nil && !c.StripeCustomerID.Valid {
+		// 	err := payment.Queries.UpdateCustomerStripeCustomerID(context.Background(), paymentmodels.UpdateCustomerStripeCustomerIDParams{
+		// 		StripeCustomerID: pgtype.Text{String: result.Customer.ID},
+		// 		ID:               c.ID,
+		// 	})
+		// 	if err != nil {
+		// 		eventId := sentry.CaptureException(err)
+		// 		return nil, &base.ErrorComm{
+		// 			EventID: eventId,
+		// 			UserMsg: fmt.Errorf("checkout session creation failed (%s)", *eventId),
+		// 			DevMsg:  err,
+		// 		}
+		// 	}
+		// }
+
+		return nil
+	}
+
+	if event.Type == "customer.subscription.created" {
+		cust := event.Data.Object["customer"].(*stripe.Customer)
+		// if err != nil {
+		// 	return fmt.Errorf("converting raw event to customer object: %w", err)
+		// }
 		subsc, err := subscription.Get(event.Data.Object["subscription"].(string), nil)
 		if err != nil {
 			return fmt.Errorf("converting raw event to subscription object: %w", err)

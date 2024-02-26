@@ -12,6 +12,8 @@ templ WalletTier(customer *paymentmodels.Customer, tierConfig payment.TierConfig
 		} else {
 			<p><strike>Auto </strike> </p>
 		}
+		<h1>My level: { string(TierConfigs[customer.TierID].Level ) }</h1>
+		<h1>This level: { string(tierConfig.Level ) }</h1>
 		if TierConfigs[customer.TierID].Level == tierConfig.Level {
 			<form action={ templ.SafeURL("/subscription/cancel/" + tierConfig.TierID) } method="get">
 				<button type="submit">Cancel</button>

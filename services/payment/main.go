@@ -47,23 +47,33 @@ func (payment *Payment) loadStripe() {
 	// stripe key
 	stripe.Key = payment.base.STRIPE_PRIVATE_KEY
 
-	// webhook setup
-	params := &stripe.WebhookEndpointParams{
-		EnabledEvents: []*string{
-			// stripe.String("customer.subscription.updated"),
-			stripe.String("customer.subscription.created"),
-			stripe.String("customer.subscription.deleted"),
-			// stripe.String("customer.subscription.resumed"),
-			// stripe.String("customer.subscription.paused"),
-			// stripe.String("payment_method.attached"),
-			// stripe.String("payment_method.detached"),
-		},
-		URL: stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
+	params := &stripe.WebhookEndpointListParams{}
+	result := webhookendpoint.List(params)
+	count := 0
+	for result.Next() {
+		count++
 	}
-	_, err := webhookendpoint.New(params)
-	if err != nil {
-		log.Fatalln("Error: init stripe webhook events: %w", err)
+	if count == 0 {
+		// webhook setup
+		params := &stripe.WebhookEndpointParams{
+			EnabledEvents: []*string{
+				// stripe.String("customer.subscription.updated"),
+				stripe.String("customer.created"),
+				stripe.String("customer.subscription.created"),
+				stripe.String("customer.subscription.deleted"),
+				// stripe.String("customer.subscription.resumed"),
+				// stripe.String("customer.subscription.paused"),
+				// stripe.String("payment_method.attached"),
+				// stripe.String("payment_method.detached"),
+			},
+			URL: stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
+		}
+		_, err := webhookendpoint.New(params)
+		if err != nil {
+			log.Fatalln("Error: init stripe webhook events: %w", err)
+		}
 	}
+
 }
 
 func loadTierConfigs() map[paymentmodels.TierID]TierConfig {
