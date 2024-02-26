@@ -77,6 +77,11 @@ func (payment *Payment) paymentRoutes() {
 	})
 
 	payment.base.POST("/payment/webhook/events", func(ctx *gin.Context) {
+
+		fmt.Println("=================")
+		fmt.Printf("\n /payment/webhook/events ctx: %+v \n", ctx)
+		fmt.Println("=================")
+
 		payment.HandleStripeWebhook(ctx)
 	})
 

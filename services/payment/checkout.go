@@ -12,12 +12,45 @@ import (
 
 func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, *base.ErrorComm) {
 
-	var params *stripe.CheckoutSessionParams
+	var customerID *string
+	var customerEmail *string
 	if !c.StripeCustomerID.Valid {
-		params = payment.firstTimerCheckoutParams(c, tierConfig)
+		customerID = nil
+		customerEmail = &c.Email
 	} else {
-		params = payment.returningCustomerCheckoutParams(c, tierConfig)
+		customerID = &c.StripeCustomerID.String
+		customerEmail = nil
 	}
+
+	var params *stripe.CheckoutSessionParams = &stripe.CheckoutSessionParams{
+		Customer:      customerID,
+		Mode:          stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		CustomerEmail: customerEmail,
+		SuccessURL:    stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+					Currency: stripe.String(string(stripe.CurrencyUSD)),
+					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+						Name: stripe.String(tierConfig.Name),
+					},
+					Recurring: &stripe.CheckoutSessionLineItemPriceDataRecurringParams{
+						Interval:      stripe.String(tierConfig.Interval),
+						IntervalCount: stripe.Int64(1),
+					},
+					UnitAmount: stripe.Int64(getNewUnitAmount(payment.TierConfigs[c.TierID], tierConfig)),
+				},
+				Quantity: stripe.Int64(1),
+			},
+		},
+		Metadata: map[string]string{"tier": string(tierConfig.TierID)},
+	}
+
+	// if !c.StripeCustomerID.Valid {
+	// 	params = payment.firstTimerCheckoutParams(c, tierConfig)
+	// } else {
+	// 	params = payment.returningCustomerCheckoutParams(c, tierConfig)
+	// }
 
 	result, err := session.New(params)
 	if err != nil {

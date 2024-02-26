@@ -12,7 +12,7 @@ type Auth struct {
 
 func LoadAuth(base *base.Base) *Auth {
 
-	queries := authmodels.New(base.Conn)
+	queries := authmodels.New(base.Pool)
 	auth := Auth{
 		Queries: queries,
 		base:    base,

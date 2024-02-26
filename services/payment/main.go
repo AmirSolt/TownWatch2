@@ -29,7 +29,7 @@ type TierConfig struct {
 
 func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 
-	queries := paymentmodels.New(base.Conn)
+	queries := paymentmodels.New(base.Pool)
 
 	payment := Payment{
 		Queries:     queries,
