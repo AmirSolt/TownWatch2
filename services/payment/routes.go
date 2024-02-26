@@ -76,4 +76,8 @@ func (payment *Payment) paymentRoutes() {
 		ctx.Redirect(302, checkoutSession.URL)
 	})
 
+	payment.base.POST("/payment/webhook/events", func(ctx *gin.Context) {
+		payment.HandleStripeWebhook(ctx)
+	})
+
 }

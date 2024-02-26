@@ -51,6 +51,7 @@ func (payment *Payment) loadStripe() {
 	result := webhookendpoint.List(params)
 	count := 0
 	for result.Next() {
+
 		count++
 	}
 	if count == 0 {
