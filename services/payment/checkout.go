@@ -43,10 +43,6 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 				Quantity: stripe.Int64(1),
 			},
 		},
-		Metadata: map[string]string{
-			"tier":           string(tierConfig.TierID),
-			"customer_email": c.Email,
-		},
 	}
 
 	// if !c.StripeCustomerID.Valid {

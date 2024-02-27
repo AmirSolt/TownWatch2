@@ -81,7 +81,6 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 			eventId := sentry.CaptureException(err)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
-		tier := subsc.Metadata["tier"]
 
 		params := &stripe.CustomerParams{}
 		stripeCustomer, err := customer.Get(subsc.Customer.ID, params)
@@ -99,6 +98,10 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 			eventId := sentry.CaptureException(errCust)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
+
+		// get tier by price
+		// payment.TierConfigs subsc.Items.Data[0].Price.UnitAmount
+		subsc.Items.Data[0].Price.ID
 
 		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 			StripeSubscriptionID: pgtype.Text{String: subsc.ID},

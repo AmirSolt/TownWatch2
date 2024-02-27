@@ -43,41 +43,6 @@ func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 	return &payment
 }
 
-func (payment *Payment) loadStripe() {
-	// stripe key
-	stripe.Key = payment.base.STRIPE_PRIVATE_KEY
-
-	params := &stripe.WebhookEndpointListParams{}
-	result := webhookendpoint.List(params)
-	count := 0
-	for result.Next() {
-
-		count++
-	}
-	if count == 0 {
-		// webhook setup
-		params := &stripe.WebhookEndpointParams{
-			EnabledEvents: []*string{
-				// stripe.String("customer.subscription.updated"),
-				stripe.String("customer.created"),
-				// stripe.String("checkout.session.completed"),
-				stripe.String("customer.subscription.created"),
-				stripe.String("customer.subscription.deleted"),
-				// stripe.String("customer.subscription.resumed"),
-				// stripe.String("customer.subscription.paused"),
-				// stripe.String("payment_method.attached"),
-				// stripe.String("payment_method.detached"),
-			},
-			URL: stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
-		}
-		_, err := webhookendpoint.New(params)
-		if err != nil {
-			log.Fatalln("Error: init stripe webhook events: %w", err)
-		}
-	}
-
-}
-
 func loadTierConfigs() map[paymentmodels.TierID]TierConfig {
 	m := make(map[paymentmodels.TierID]TierConfig)
 	m[paymentmodels.TierIDT0] = TierConfig{
@@ -102,4 +67,89 @@ func loadTierConfigs() map[paymentmodels.TierID]TierConfig {
 		Amount:   10000,
 	}
 	return m
+}
+
+func (payment *Payment) loadStripe() {
+
+	stripe.Key = payment.base.STRIPE_PRIVATE_KEY
+
+	product := payment.loadStripeProduct()
+	payment.loadStripePrices(product)
+	payment.loadStripeWebhook()
+
+}
+
+func (payment *Payment) loadStripeProduct() *stripe.Product {
+	// same as webhook enpoint
+	return nil
+}
+
+func (payment *Payment) loadStripePrices(product *stripe.Product) []*stripe.Price {
+
+}
+
+func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
+	targetParams := &stripe.WebhookEndpointParams{
+		EnabledEvents: []*string{
+			stripe.String("customer.created"),
+			stripe.String("customer.subscription.created"),
+			stripe.String("customer.subscription.deleted"),
+		},
+		URL:      stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
+		Metadata: map[string]string{},
+	}
+	var targetWebhook *stripe.WebhookEndpoint
+
+	params := &stripe.WebhookEndpointListParams{}
+	result := webhookendpoint.List(params)
+	for result.Next() {
+
+		webhook := result.Current().(*stripe.WebhookEndpoint)
+
+		if areStringSlicesEqual(webhook.EnabledEvents, targetParams.EnabledEvents) &&
+			webhook.URL == *targetParams.URL &&
+			areStringMapsEqual(webhook.Metadata, targetParams.Metadata) {
+			targetWebhook = webhook
+		} else {
+			params := &stripe.WebhookEndpointParams{}
+			_, err := webhookendpoint.Del(payment.base.STRIPE_WEBHOOK_KEY, params)
+			if err != nil {
+				log.Fatalln("Error: deleting webhook-endoint: %w", err)
+			}
+		}
+	}
+
+	if targetWebhook == nil {
+		var err error
+		targetWebhook, err = webhookendpoint.New(targetParams)
+		if err != nil {
+			log.Fatalln("Error: init stripe webhook events: %w", err)
+		}
+	}
+
+	return targetWebhook
+}
+
+func areStringSlicesEqual(strs []string, ptrs []*string) bool {
+	if len(strs) != len(ptrs) {
+		return false
+	}
+	for i, str := range strs {
+		if ptrs[i] == nil || str != *ptrs[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func areStringMapsEqual(map1, map2 map[string]string) bool {
+	if len(map1) != len(map2) {
+		return false
+	}
+	for key, value := range map1 {
+		if val2, ok := map2[key]; !ok || value != val2 {
+			return false
+		}
+	}
+	return true
 }
