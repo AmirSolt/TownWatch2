@@ -10,7 +10,7 @@ import (
 	"github.com/stripe/stripe-go/v76/checkout/session"
 )
 
-func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, *base.ErrorComm) {
+func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierID paymentmodels.TierID) (*stripe.CheckoutSession, *base.ErrorComm) {
 
 	var customerID *string
 	var customerEmail *string
@@ -29,17 +29,7 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 		SuccessURL:    stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String(string(stripe.CurrencyUSD)),
-					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String(tierConfig.Name),
-					},
-					Recurring: &stripe.CheckoutSessionLineItemPriceDataRecurringParams{
-						Interval:      stripe.String(tierConfig.Interval),
-						IntervalCount: stripe.Int64(1),
-					},
-					UnitAmount: stripe.Int64(getNewUnitAmount(payment.TierConfigs[c.TierID], tierConfig)),
-				},
+				Price:    &payment.Prices[tierID].ID,
 				Quantity: stripe.Int64(1),
 			},
 		},

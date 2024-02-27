@@ -101,7 +101,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 
 		// get tier by price
 		// payment.TierConfigs subsc.Items.Data[0].Price.UnitAmount
-		subsc.Items.Data[0].Price.ID
+		tier := subsc.Items.Data[0].Price.Metadata["tier"]
 
 		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 			StripeSubscriptionID: pgtype.Text{String: subsc.ID},

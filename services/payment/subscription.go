@@ -10,15 +10,15 @@ import (
 	"github.com/stripe/stripe-go/v76/subscription"
 )
 
-func (payment *Payment) Subscribe(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, *base.ErrorComm) {
-	return payment.createCheckoutSession(c, tierConfig)
+func (payment *Payment) Subscribe(c *paymentmodels.Customer, tierID paymentmodels.TierID) (*stripe.CheckoutSession, *base.ErrorComm) {
+	return payment.createCheckoutSession(c, tierID)
 }
-func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tierConfig TierConfig) (*stripe.CheckoutSession, *base.ErrorComm) {
+func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tierID paymentmodels.TierID) (*stripe.CheckoutSession, *base.ErrorComm) {
 	err := payment.CancelSubscription(c)
 	if err != nil {
 		return nil, err
 	}
-	return payment.createCheckoutSession(c, tierConfig)
+	return payment.createCheckoutSession(c, tierID)
 }
 func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.ErrorComm {
 	_, errSub := subscription.Cancel(c.StripeSubscriptionID.String, &stripe.SubscriptionCancelParams{})

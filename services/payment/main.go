@@ -16,6 +16,7 @@ import (
 
 type Payment struct {
 	Queries *paymentmodels.Queries
+	Prices  map[paymentmodels.TierID]*stripe.Price
 	base    *base.Base
 	auth    *auth.Auth
 	// TierConfigs map[paymentmodels.TierID]TierConfig
@@ -76,9 +77,10 @@ func (payment *Payment) loadStripe() {
 
 	stripe.Key = payment.base.STRIPE_PRIVATE_KEY
 
-	product := payment.loadStripeProduct()
-	payment.loadStripePrices(product)
 	payment.loadStripeWebhook()
+	product := payment.loadStripeProduct()
+	priceMap := payment.loadStripePrices(product)
+	payment.Prices = priceMap
 
 }
 

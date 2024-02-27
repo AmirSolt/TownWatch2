@@ -28,7 +28,7 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, errComm := payment.Subscribe(&customer, payment.TierConfigs[tierID])
+		checkoutSession, errComm := payment.Subscribe(&customer, tierID)
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
@@ -67,7 +67,7 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, errComm := payment.ChangeSubscriptionTier(&customer, payment.TierConfigs[tierID])
+		checkoutSession, errComm := payment.ChangeSubscriptionTier(&customer, tierID)
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
