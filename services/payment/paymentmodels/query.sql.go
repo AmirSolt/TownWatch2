@@ -117,7 +117,7 @@ WHERE id = $3
 
 type UpdateCustomerSubAndTierParams struct {
 	StripeSubscriptionID pgtype.Text
-	Tier                 Tier
+	Tier                 int32
 	ID                   int32
 }
 

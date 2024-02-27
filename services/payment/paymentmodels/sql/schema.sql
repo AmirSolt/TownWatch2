@@ -1,13 +1,12 @@
 -- ======
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE tier AS ENUM ('0', '1', '2');
 
 CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email TEXT NOT NULL UNIQUE,
-    tier tier NOT NULL DEFAULT '0',
+    tier INT NOT NULL DEFAULT 0,
     stripe_customer_id TEXT UNIQUE,
     stripe_subscription_id TEXT UNIQUE,
     user_id uuid NOT NULL,

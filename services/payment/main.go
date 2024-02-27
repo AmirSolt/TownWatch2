@@ -18,10 +18,18 @@ import (
 
 type Payment struct {
 	Queries *paymentmodels.Queries
-	Prices  map[paymentmodels.Tier]*stripe.Price
+	Prices  map[Tier]*stripe.Price
 	base    *base.Base
 	auth    *auth.Auth
 }
+
+type Tier int
+
+const (
+	Tier0 Tier = iota
+	Tier1 Tier = iota
+	Tier2 Tier = iota
+)
 
 func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 
@@ -130,7 +138,7 @@ func (payment *Payment) loadStripeProduct() *stripe.Product {
 	return targetProduct
 }
 
-func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmodels.Tier]*stripe.Price {
+func (payment *Payment) loadStripePrices(product *stripe.Product) map[Tier]*stripe.Price {
 
 	targetParamsMonthly := &stripe.PriceParams{
 		Nickname: stripe.String("Monthly"),
@@ -142,7 +150,7 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 		},
 		UnitAmount: stripe.Int64(1000),
 		Metadata: map[string]string{
-			"tier": string(paymentmodels.Tier1),
+			"tier": string(Tier1),
 		},
 	}
 	targetParamsYearly := &stripe.PriceParams{
@@ -155,16 +163,16 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 		},
 		UnitAmount: stripe.Int64(10000),
 		Metadata: map[string]string{
-			"tier": string(paymentmodels.Tier2),
+			"tier": string(Tier2),
 		},
 	}
 
-	targetParamsMap := map[paymentmodels.Tier]*stripe.PriceParams{
-		paymentmodels.Tier1: targetParamsMonthly,
-		paymentmodels.Tier2: targetParamsYearly,
+	targetParamsMap := map[Tier]*stripe.PriceParams{
+		Tier1: targetParamsMonthly,
+		Tier2: targetParamsYearly,
 	}
 
-	targetPriceMap := map[paymentmodels.Tier]*stripe.Price{}
+	targetPriceMap := map[Tier]*stripe.Price{}
 
 	params := &stripe.PriceListParams{}
 	result := price.List(params)

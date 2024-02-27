@@ -5,60 +5,14 @@
 package paymentmodels
 
 import (
-	"database/sql/driver"
-	"fmt"
-
 	"github.com/jackc/pgx/v5/pgtype"
 )
-
-type Tier string
-
-const (
-	Tier0 Tier = "0"
-	Tier1 Tier = "1"
-	Tier2 Tier = "2"
-)
-
-func (e *Tier) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = Tier(s)
-	case string:
-		*e = Tier(s)
-	default:
-		return fmt.Errorf("unsupported scan type for Tier: %T", src)
-	}
-	return nil
-}
-
-type NullTier struct {
-	Tier  Tier
-	Valid bool // Valid is true if Tier is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullTier) Scan(value interface{}) error {
-	if value == nil {
-		ns.Tier, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.Tier.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullTier) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.Tier), nil
-}
 
 type Customer struct {
 	ID                   int32
 	CreatedAt            pgtype.Timestamptz
 	Email                string
-	Tier                 Tier
+	Tier                 int32
 	StripeCustomerID     pgtype.Text
 	StripeSubscriptionID pgtype.Text
 	UserID               pgtype.UUID
