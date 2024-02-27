@@ -26,12 +26,12 @@ func DebugGuestButton(user *authmodels.User) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if user == nil {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"GET\"><button class=\"btn btn-green\" type=\"submit\" disabled>Guest\r</button></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"GET\"><button class=\"btn btn-green\" type=\"submit\" disabled>Guest</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"GET\"><button class=\"btn btn-red\" type=\"submit\">Guest\r</button></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signout\" method=\"GET\"><button class=\"btn btn-red\" type=\"submit\">Guest</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -64,7 +64,7 @@ func DebugUserButton(user *authmodels.User, name string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\auth\authtemplates\main.templ`, Line: 23, Col: 9}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services/auth/authtemplates/main.templ`, Line: 23, Col: 9}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -90,7 +90,7 @@ func DebugUserButton(user *authmodels.User, name string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\auth\authtemplates\main.templ`, Line: 29, Col: 10}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `services/auth/authtemplates/main.templ`, Line: 29, Col: 10}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -121,7 +121,7 @@ func SigninForm() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signin\" method=\"POST\"><input class=\"input\" type=\"email\" name=\"email\" placeholder=\"example@email.com\"><p>By registering you agree to policy\r</p><button class=\"btn btn-nrm\" type=\"submit\">Submit\r</button></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/join/signin\" method=\"POST\"><input class=\"input\" type=\"email\" name=\"email\" placeholder=\"example@email.com\"><p>By registering you agree to policy</p><button class=\"btn btn-nrm\" type=\"submit\">Submit</button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -145,7 +145,7 @@ func ResendVerificationDiv() templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><p>A link has been sent to your inbox. Please wait a few minutes, if you do not recieve an email after 5 minutes, try resend.\r</p><a href=\"/join\" class=\"btn btn-outline\" type=\"submit\">Resend\r</a></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><p>A link has been sent to your inbox. Please wait a few minutes, if you do not recieve an email after 5 minutes, try resend.</p><a href=\"/join\" class=\"btn btn-outline\" type=\"submit\">Resend</a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
