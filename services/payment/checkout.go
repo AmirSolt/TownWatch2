@@ -43,7 +43,10 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 				Quantity: stripe.Int64(1),
 			},
 		},
-		Metadata: map[string]string{"tier": string(tierConfig.TierID)},
+		Metadata: map[string]string{
+			"tier":           string(tierConfig.TierID),
+			"customer_email": c.Email,
+		},
 	}
 
 	// if !c.StripeCustomerID.Valid {
@@ -65,57 +68,57 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tierCon
 	return result, nil
 }
 
-func (payment *Payment) firstTimerCheckoutParams(customer *paymentmodels.Customer, tierConfig TierConfig) *stripe.CheckoutSessionParams {
-	return &stripe.CheckoutSessionParams{
-		// Customer: stripe.String(customerID),
-		Mode:          stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		CustomerEmail: stripe.String(customer.Email),
-		SuccessURL:    stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String(string(stripe.CurrencyUSD)),
-					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String(tierConfig.Name),
-					},
-					Recurring: &stripe.CheckoutSessionLineItemPriceDataRecurringParams{
-						Interval:      stripe.String(tierConfig.Interval),
-						IntervalCount: stripe.Int64(1),
-					},
-					UnitAmount: stripe.Int64(getNewUnitAmount(payment.TierConfigs[customer.TierID], tierConfig)),
-				},
-				Quantity: stripe.Int64(1),
-			},
-		},
-		Metadata: map[string]string{"tier": string(tierConfig.TierID)},
-	}
-}
-func (payment *Payment) returningCustomerCheckoutParams(customer *paymentmodels.Customer, tierConfig TierConfig) *stripe.CheckoutSessionParams {
-	return &stripe.CheckoutSessionParams{
-		Customer: stripe.String(customer.StripeCustomerID.String),
-		Mode:     stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		// CustomerEmail: stripe.String(c.Email),
-		// ReturnURL:     stripe.String(payment.base.DOMAIN),
-		SuccessURL: stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String(string(stripe.CurrencyUSD)),
-					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String(tierConfig.Name),
-					},
-					Recurring: &stripe.CheckoutSessionLineItemPriceDataRecurringParams{
-						Interval:      stripe.String(tierConfig.Interval),
-						IntervalCount: stripe.Int64(1),
-					},
-					UnitAmount: stripe.Int64(getNewUnitAmount(payment.TierConfigs[customer.TierID], tierConfig)),
-				},
-				Quantity: stripe.Int64(1),
-			},
-		},
-		Metadata: map[string]string{"tier": string(tierConfig.TierID)},
-	}
-}
+// func (payment *Payment) firstTimerCheckoutParams(customer *paymentmodels.Customer, tierConfig TierConfig) *stripe.CheckoutSessionParams {
+// 	return &stripe.CheckoutSessionParams{
+// 		// Customer: stripe.String(customerID),
+// 		Mode:          stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+// 		CustomerEmail: stripe.String(customer.Email),
+// 		SuccessURL:    stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
+// 		LineItems: []*stripe.CheckoutSessionLineItemParams{
+// 			{
+// 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+// 					Currency: stripe.String(string(stripe.CurrencyUSD)),
+// 					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+// 						Name: stripe.String(tierConfig.Name),
+// 					},
+// 					Recurring: &stripe.CheckoutSessionLineItemPriceDataRecurringParams{
+// 						Interval:      stripe.String(tierConfig.Interval),
+// 						IntervalCount: stripe.Int64(1),
+// 					},
+// 					UnitAmount: stripe.Int64(getNewUnitAmount(payment.TierConfigs[customer.TierID], tierConfig)),
+// 				},
+// 				Quantity: stripe.Int64(1),
+// 			},
+// 		},
+// 		Metadata: map[string]string{"tier": string(tierConfig.TierID)},
+// 	}
+// }
+// func (payment *Payment) returningCustomerCheckoutParams(customer *paymentmodels.Customer, tierConfig TierConfig) *stripe.CheckoutSessionParams {
+// 	return &stripe.CheckoutSessionParams{
+// 		Customer: stripe.String(customer.StripeCustomerID.String),
+// 		Mode:     stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+// 		// CustomerEmail: stripe.String(c.Email),
+// 		// ReturnURL:     stripe.String(payment.base.DOMAIN),
+// 		SuccessURL: stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
+// 		LineItems: []*stripe.CheckoutSessionLineItemParams{
+// 			{
+// 				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+// 					Currency: stripe.String(string(stripe.CurrencyUSD)),
+// 					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+// 						Name: stripe.String(tierConfig.Name),
+// 					},
+// 					Recurring: &stripe.CheckoutSessionLineItemPriceDataRecurringParams{
+// 						Interval:      stripe.String(tierConfig.Interval),
+// 						IntervalCount: stripe.Int64(1),
+// 					},
+// 					UnitAmount: stripe.Int64(getNewUnitAmount(payment.TierConfigs[customer.TierID], tierConfig)),
+// 				},
+// 				Quantity: stripe.Int64(1),
+// 			},
+// 		},
+// 		Metadata: map[string]string{"tier": string(tierConfig.TierID)},
+// 	}
+// }
 
 func getNewUnitAmount(currentTierConfig TierConfig, targetTierConfig TierConfig) int64 {
 	newCost := targetTierConfig.Amount - currentTierConfig.Amount

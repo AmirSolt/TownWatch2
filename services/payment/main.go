@@ -60,6 +60,7 @@ func (payment *Payment) loadStripe() {
 			EnabledEvents: []*string{
 				// stripe.String("customer.subscription.updated"),
 				stripe.String("customer.created"),
+				// stripe.String("checkout.session.completed"),
 				stripe.String("customer.subscription.created"),
 				stripe.String("customer.subscription.deleted"),
 				// stripe.String("customer.subscription.resumed"),

@@ -1,7 +1,6 @@
 package payment
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/customer"
 	"github.com/stripe/stripe-go/v76/webhook"
 )
 
@@ -63,7 +63,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 			eventId := sentry.CaptureException(err)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
-		errUpd := payment.Queries.UpdateCustomerStripeCustomerID(context.Background(), paymentmodels.UpdateCustomerStripeCustomerIDParams{
+		errUpd := payment.Queries.UpdateCustomerStripeCustomerID(ctx, paymentmodels.UpdateCustomerStripeCustomerIDParams{
 			StripeCustomerID: pgtype.Text{String: stripeCustomer.ID, Valid: true},
 			ID:               customer.ID,
 		})
@@ -83,13 +83,24 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 		}
 		tier := subsc.Metadata["tier"]
 
-		customer, errCust := payment.Queries.GetCustomerByEmail(context.Background(), subsc.Customer.Email)
+		params := &stripe.CustomerParams{}
+		stripeCustomer, err := customer.Get(subsc.Customer.ID, params)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
+
+		fmt.Println("==================================")
+		fmt.Printf("\n>> stripeCustomer: %+v \n\n", stripeCustomer)
+		fmt.Println("==================================")
+
+		customer, errCust := payment.Queries.GetCustomerByEmail(ctx, stripeCustomer.Email)
 		if errCust != nil {
 			eventId := sentry.CaptureException(errCust)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
 
-		errUpd := payment.Queries.UpdateCustomerSubAndTier(context.Background(), paymentmodels.UpdateCustomerSubAndTierParams{
+		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 			StripeSubscriptionID: pgtype.Text{String: subsc.ID},
 			TierID:               paymentmodels.TierID(tier),
 			ID:                   customer.ID,
@@ -101,6 +112,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 
 		return nil
 	}
+
 	// =============================================
 	if event.Type == "customer.subscription.deleted" {
 		subsc, err := getStripeSubscriptionFromObj(event.Data.Object)
@@ -109,14 +121,14 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
 
-		customer, errCust := payment.Queries.GetCustomerByEmail(context.Background(), subsc.Customer.Email)
+		customer, errCust := payment.Queries.GetCustomerByStripeCustomerID(ctx, pgtype.Text{String: subsc.Customer.ID, Valid: true})
 		if errCust != nil {
 			eventId := sentry.CaptureException(errCust)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
 
 		if customer.StripeSubscriptionID.String == subsc.ID {
-			errUpd := payment.Queries.UpdateCustomerSubAndTier(context.Background(), paymentmodels.UpdateCustomerSubAndTierParams{
+			errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 				StripeSubscriptionID: pgtype.Text{String: "", Valid: false},
 				TierID:               paymentmodels.TierIDT0,
 				ID:                   customer.ID,
@@ -146,6 +158,21 @@ func getStripeCustomerFromObj(object map[string]interface{}) (*stripe.Customer, 
 		return nil, fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 	}
 	return stripeCustomer, nil
+}
+
+func getStripeCheckoutSessionFromObj(object map[string]interface{}) (*stripe.CheckoutSession, error) {
+	jsonCustomer, err := json.Marshal(object)
+	if err != nil {
+		eventId := sentry.CaptureException(err)
+		return nil, fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+	}
+	var stripeStruct *stripe.CheckoutSession
+	err = json.Unmarshal(jsonCustomer, &stripeStruct)
+	if stripeStruct == nil || err != nil {
+		eventId := sentry.CaptureException(err)
+		return nil, fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+	}
+	return stripeStruct, nil
 }
 
 func getStripeSubscriptionFromObj(object map[string]interface{}) (*stripe.Subscription, error) {

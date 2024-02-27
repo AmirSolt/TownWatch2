@@ -5,7 +5,7 @@ WHERE id = $1 LIMIT 1;
 
 -- name: GetCustomerByEmail :one
 SELECT * FROM customers
-WHERE email = $1 LIMIT 1;
+WHERE LOWER(email) = LOWER($1) LIMIT 1;
 
 -- name: GetCustomerByUserID :one
 SELECT * FROM customers

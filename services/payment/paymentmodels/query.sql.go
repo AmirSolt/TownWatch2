@@ -33,11 +33,11 @@ func (q *Queries) GetCustomer(ctx context.Context, id int32) (Customer, error) {
 
 const getCustomerByEmail = `-- name: GetCustomerByEmail :one
 SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
-WHERE email = $1 LIMIT 1
+WHERE LOWER(email) = LOWER($1) LIMIT 1
 `
 
-func (q *Queries) GetCustomerByEmail(ctx context.Context, email string) (Customer, error) {
-	row := q.db.QueryRow(ctx, getCustomerByEmail, email)
+func (q *Queries) GetCustomerByEmail(ctx context.Context, lower string) (Customer, error) {
+	row := q.db.QueryRow(ctx, getCustomerByEmail, lower)
 	var i Customer
 	err := row.Scan(
 		&i.ID,
