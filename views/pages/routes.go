@@ -41,7 +41,13 @@ func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payment *payment.Paym
 			return
 		}
 
-		Page(user, base.IS_PROD, WalletPage(&customer, payment.TierConfigs)).Render(ctx, ctx.Writer)
+		subsc, errComm := payment.GetSubscription(customer.StripeSubscriptionID.String)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
+			return
+		}
+
+		Page(user, base.IS_PROD, WalletPage(&customer, subsc, payment.Prices)).Render(ctx, ctx.Writer)
 	})
 	// ================================
 

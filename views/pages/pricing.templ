@@ -37,7 +37,7 @@ templ PricingPage(user *authmodels.User) {
 			Total: $96 + tax
 		</p>
 		if user != nil {
-			<a href={ templ.SafeURL("/subscription/create/" + paymentmodels.TierIDT2) } class="btn btn-nrm">
+			<a href={ templ.SafeURL("/subscription/create/" + paymentmodels.Tier2) } class="btn btn-nrm">
 				Next
 			</a>
 		} else {
@@ -56,7 +56,7 @@ templ PricingPage(user *authmodels.User) {
 			$15.99/Month + tax
 		</h2>
 		if user != nil {
-			<a href={ templ.SafeURL("/subscription/create/" + paymentmodels.TierIDT1) } class="btn btn-nrm">
+			<a href={ templ.SafeURL("/subscription/create/" + paymentmodels.Tier1) } class="btn btn-nrm">
 				Next
 			</a>
 		} else {

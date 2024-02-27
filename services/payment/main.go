@@ -16,19 +16,10 @@ import (
 
 type Payment struct {
 	Queries *paymentmodels.Queries
-	Prices  map[paymentmodels.TierID]*stripe.Price
+	Prices  map[paymentmodels.Tier]*stripe.Price
 	base    *base.Base
 	auth    *auth.Auth
 	// TierConfigs map[paymentmodels.TierID]TierConfig
-}
-
-type TierConfig struct {
-	TierID   paymentmodels.TierID
-	Name     string
-	Symbol   string
-	Interval string
-	Amount   int64
-	Level    int64
 }
 
 func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
@@ -45,32 +36,6 @@ func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 	payment.registerPaymentRoutes()
 
 	return &payment
-}
-
-func loadTierConfigs() map[paymentmodels.TierID]TierConfig {
-	m := make(map[paymentmodels.TierID]TierConfig)
-	m[paymentmodels.TierIDT0] = TierConfig{
-		TierID:   paymentmodels.TierIDT0,
-		Name:     "Free",
-		Interval: "never",
-		Symbol:   "$",
-		Amount:   0,
-	}
-	m[paymentmodels.TierIDT1] = TierConfig{
-		TierID:   paymentmodels.TierIDT1,
-		Name:     "Monthly",
-		Interval: "month",
-		Symbol:   "$",
-		Amount:   1000,
-	}
-	m[paymentmodels.TierIDT2] = TierConfig{
-		TierID:   paymentmodels.TierIDT2,
-		Name:     "Yearly",
-		Interval: "year",
-		Symbol:   "$",
-		Amount:   10000,
-	}
-	return m
 }
 
 func (payment *Payment) loadStripe() {
@@ -119,9 +84,10 @@ func (payment *Payment) loadStripeProduct() *stripe.Product {
 	return targetProduct
 }
 
-func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmodels.TierID]*stripe.Price {
+func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmodels.Tier]*stripe.Price {
 
 	targetParamsMonthly := &stripe.PriceParams{
+		Nickname: stripe.String("Monthly"),
 		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		Product:  &product.ID,
 		Recurring: &stripe.PriceRecurringParams{
@@ -130,10 +96,11 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 		},
 		UnitAmount: stripe.Int64(1000),
 		Metadata: map[string]string{
-			"tier": string(paymentmodels.TierIDT1),
+			"tier": string(paymentmodels.Tier1),
 		},
 	}
 	targetParamsYearly := &stripe.PriceParams{
+		Nickname: stripe.String("Yearly"),
 		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		Product:  &product.ID,
 		Recurring: &stripe.PriceRecurringParams{
@@ -142,16 +109,16 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 		},
 		UnitAmount: stripe.Int64(10000),
 		Metadata: map[string]string{
-			"tier": string(paymentmodels.TierIDT2),
+			"tier": string(paymentmodels.Tier2),
 		},
 	}
 
-	targetParamsMap := map[paymentmodels.TierID]*stripe.PriceParams{
-		paymentmodels.TierIDT1: targetParamsMonthly,
-		paymentmodels.TierIDT2: targetParamsYearly,
+	targetParamsMap := map[paymentmodels.Tier]*stripe.PriceParams{
+		paymentmodels.Tier1: targetParamsMonthly,
+		paymentmodels.Tier2: targetParamsYearly,
 	}
 
-	targetPriceMap := map[paymentmodels.TierID]*stripe.Price{}
+	targetPriceMap := map[paymentmodels.Tier]*stripe.Price{}
 
 	params := &stripe.PriceListParams{}
 	result := price.List(params)

@@ -11,54 +11,54 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type TierID string
+type Tier string
 
 const (
-	TierIDT0 TierID = "t0"
-	TierIDT1 TierID = "t1"
-	TierIDT2 TierID = "t2"
+	Tier0 Tier = "0"
+	Tier1 Tier = "1"
+	Tier2 Tier = "2"
 )
 
-func (e *TierID) Scan(src interface{}) error {
+func (e *Tier) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = TierID(s)
+		*e = Tier(s)
 	case string:
-		*e = TierID(s)
+		*e = Tier(s)
 	default:
-		return fmt.Errorf("unsupported scan type for TierID: %T", src)
+		return fmt.Errorf("unsupported scan type for Tier: %T", src)
 	}
 	return nil
 }
 
-type NullTierID struct {
-	TierID TierID
-	Valid  bool // Valid is true if TierID is not NULL
+type NullTier struct {
+	Tier  Tier
+	Valid bool // Valid is true if Tier is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullTierID) Scan(value interface{}) error {
+func (ns *NullTier) Scan(value interface{}) error {
 	if value == nil {
-		ns.TierID, ns.Valid = "", false
+		ns.Tier, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.TierID.Scan(value)
+	return ns.Tier.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullTierID) Value() (driver.Value, error) {
+func (ns NullTier) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.TierID), nil
+	return string(ns.Tier), nil
 }
 
 type Customer struct {
 	ID                   int32
 	CreatedAt            pgtype.Timestamptz
 	Email                string
-	TierID               TierID
+	Tier                 Tier
 	StripeCustomerID     pgtype.Text
 	StripeSubscriptionID pgtype.Text
 	UserID               pgtype.UUID

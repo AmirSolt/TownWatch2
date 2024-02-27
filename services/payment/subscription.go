@@ -10,15 +10,15 @@ import (
 	"github.com/stripe/stripe-go/v76/subscription"
 )
 
-func (payment *Payment) Subscribe(c *paymentmodels.Customer, tierID paymentmodels.TierID) (*stripe.CheckoutSession, *base.ErrorComm) {
-	return payment.createCheckoutSession(c, tierID)
+func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.CheckoutSession, *base.ErrorComm) {
+	return payment.createCheckoutSession(c, tier)
 }
-func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tierID paymentmodels.TierID) (*stripe.CheckoutSession, *base.ErrorComm) {
+func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.CheckoutSession, *base.ErrorComm) {
 	err := payment.CancelSubscription(c)
 	if err != nil {
 		return nil, err
 	}
-	return payment.createCheckoutSession(c, tierID)
+	return payment.createCheckoutSession(c, tier)
 }
 func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.ErrorComm {
 	_, errSub := subscription.Cancel(c.StripeSubscriptionID.String, &stripe.SubscriptionCancelParams{})
@@ -31,4 +31,19 @@ func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.Erro
 		}
 	}
 	return nil
+}
+
+func (payment *Payment) GetSubscription(subID string) (*stripe.Subscription, *base.ErrorComm) {
+	params := &stripe.SubscriptionParams{}
+	result, err := subscription.Get(subID, params)
+	if err != nil {
+		eventId := sentry.CaptureException(err)
+		return nil, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+			DevMsg:  err,
+		}
+	}
+
+	return result, nil
 }

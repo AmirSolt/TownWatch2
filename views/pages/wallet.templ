@@ -2,9 +2,9 @@ package pages
 
 import "townwatch/services/payment/paymenttemplates"
 import "townwatch/services/payment/paymentmodels"
-import "townwatch/services/payment"
+import "github.com/stripe/stripe-go/v76"
 
-templ WalletPage(customer *paymentmodels.Customer, TierConfigs map[paymentmodels.TierID]payment.TierConfig) {
+templ WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices  map[paymentmodels.Tier]*stripe.Price) {
 	<h1>
 		Tiers
 	</h1>
@@ -12,7 +12,7 @@ templ WalletPage(customer *paymentmodels.Customer, TierConfigs map[paymentmodels
 		tiers you can asd
 	</p>
 	// ================
-	for _, tierConfig := range TierConfigs {
-		@paymenttemplates.WalletTier(customer, tierConfig, TierConfigs)
+	for _, price := range prices {
+		@paymenttemplates.WalletTier(customer, subsc, price, prices)
 	}
 }

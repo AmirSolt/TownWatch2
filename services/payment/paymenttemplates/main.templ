@@ -1,29 +1,31 @@
 package paymenttemplates
 
-import "townwatch/services/payment"
 import "townwatch/services/payment/paymentmodels"
+import "github.com/stripe/stripe-go/v76"
 
-templ WalletTier(customer *paymentmodels.Customer, tierConfig payment.TierConfig, TierConfigs map[paymentmodels.TierID]payment.TierConfig) {
+templ  WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, price *stripe.Price, prices  map[paymentmodels.Tier]*stripe.Price) {
 	<div>
-		<p>{ tierConfig.Name } </p>
-		<p>{ string(tierConfig.Amount) }/{ tierConfig.Interval } </p>
-		if customer.TierID == tierConfig.TierID {
-			<p><strike>Auto </strike> </p>
+		<p>{ price.Nickname } </p>
+		<p>{ string(price.UnitAmount) }/{ string(price.Recurring.Interval) } </p>
+		if string(customer.Tier) == price.Metadata["tier"] {
+			if subsc.CancelAtPeriodEnd {
+				<p>Auto: False</p>
+			} else {
+				<p>Auto: True</p>
+			}
 		} else {
 			<p><strike>Auto </strike> </p>
 		}
-		<h1>My level: { string(TierConfigs[customer.TierID].Level ) }</h1>
-		<h1>This level: { string(tierConfig.Level ) }</h1>
-		if TierConfigs[customer.TierID].Level == tierConfig.Level {
-			<form action={ templ.SafeURL("/subscription/cancel/" + tierConfig.TierID) } method="get">
+		if  customer.Tier == paymentmodels.Tier(price.Metadata["tier"]) {
+			<form action={ templ.SafeURL("/subscription/cancel/" + price.Metadata["tier"]) } method="get">
 				<button type="submit">Cancel</button>
 			</form>
-		} else if TierConfigs[customer.TierID].Level > tierConfig.Level {
-			<form action={ templ.SafeURL("/subscription/change/" + tierConfig.TierID) } method="get">
+		} else if customer.Tier > paymentmodels.Tier(price.Metadata["tier"]) {
+			<form action={ templ.SafeURL("/subscription/change/" + price.Metadata["tier"]) } method="get">
 				<button type="submit">Downgrade</button>
 			</form>
 		} else {
-			<form action={ templ.SafeURL("/subscription/change/" + tierConfig.TierID) } method="get">
+			<form action={ templ.SafeURL("/subscription/change/" + price.Metadata["tier"]) } method="get">
 				<button type="submit">Upgrade</button>
 			</form>
 		}

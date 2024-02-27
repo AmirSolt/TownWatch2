@@ -24,5 +24,5 @@ WHERE id = $2;
 UPDATE customers
 SET 
 stripe_subscription_id = $1,
-tier_id = $2
+tier = $2
 WHERE id = $3;

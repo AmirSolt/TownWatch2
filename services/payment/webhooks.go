@@ -105,7 +105,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 
 		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 			StripeSubscriptionID: pgtype.Text{String: subsc.ID},
-			TierID:               paymentmodels.TierID(tier),
+			Tier:                 paymentmodels.Tier(tier),
 			ID:                   customer.ID,
 		})
 		if errUpd != nil {
@@ -133,7 +133,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 		if customer.StripeSubscriptionID.String == subsc.ID {
 			errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 				StripeSubscriptionID: pgtype.Text{String: "", Valid: false},
-				TierID:               paymentmodels.TierIDT0,
+				Tier:                 paymentmodels.Tier0,
 				ID:                   customer.ID,
 			})
 			if errUpd != nil {

@@ -12,7 +12,7 @@ import (
 )
 
 const getCustomer = `-- name: GetCustomer :one
-SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
+SELECT id, created_at, email, tier, stripe_customer_id, stripe_subscription_id, user_id FROM customers
 WHERE id = $1 LIMIT 1
 `
 
@@ -23,7 +23,7 @@ func (q *Queries) GetCustomer(ctx context.Context, id int32) (Customer, error) {
 		&i.ID,
 		&i.CreatedAt,
 		&i.Email,
-		&i.TierID,
+		&i.Tier,
 		&i.StripeCustomerID,
 		&i.StripeSubscriptionID,
 		&i.UserID,
@@ -32,7 +32,7 @@ func (q *Queries) GetCustomer(ctx context.Context, id int32) (Customer, error) {
 }
 
 const getCustomerByEmail = `-- name: GetCustomerByEmail :one
-SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
+SELECT id, created_at, email, tier, stripe_customer_id, stripe_subscription_id, user_id FROM customers
 WHERE LOWER(email) = LOWER($1) LIMIT 1
 `
 
@@ -43,7 +43,7 @@ func (q *Queries) GetCustomerByEmail(ctx context.Context, lower string) (Custome
 		&i.ID,
 		&i.CreatedAt,
 		&i.Email,
-		&i.TierID,
+		&i.Tier,
 		&i.StripeCustomerID,
 		&i.StripeSubscriptionID,
 		&i.UserID,
@@ -52,7 +52,7 @@ func (q *Queries) GetCustomerByEmail(ctx context.Context, lower string) (Custome
 }
 
 const getCustomerByStripeCustomerID = `-- name: GetCustomerByStripeCustomerID :one
-SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
+SELECT id, created_at, email, tier, stripe_customer_id, stripe_subscription_id, user_id FROM customers
 WHERE stripe_customer_id = $1 LIMIT 1
 `
 
@@ -63,7 +63,7 @@ func (q *Queries) GetCustomerByStripeCustomerID(ctx context.Context, stripeCusto
 		&i.ID,
 		&i.CreatedAt,
 		&i.Email,
-		&i.TierID,
+		&i.Tier,
 		&i.StripeCustomerID,
 		&i.StripeSubscriptionID,
 		&i.UserID,
@@ -72,7 +72,7 @@ func (q *Queries) GetCustomerByStripeCustomerID(ctx context.Context, stripeCusto
 }
 
 const getCustomerByUserID = `-- name: GetCustomerByUserID :one
-SELECT id, created_at, email, tier_id, stripe_customer_id, stripe_subscription_id, user_id FROM customers
+SELECT id, created_at, email, tier, stripe_customer_id, stripe_subscription_id, user_id FROM customers
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -83,7 +83,7 @@ func (q *Queries) GetCustomerByUserID(ctx context.Context, userID pgtype.UUID) (
 		&i.ID,
 		&i.CreatedAt,
 		&i.Email,
-		&i.TierID,
+		&i.Tier,
 		&i.StripeCustomerID,
 		&i.StripeSubscriptionID,
 		&i.UserID,
@@ -111,17 +111,17 @@ const updateCustomerSubAndTier = `-- name: UpdateCustomerSubAndTier :exec
 UPDATE customers
 SET 
 stripe_subscription_id = $1,
-tier_id = $2
+tier = $2
 WHERE id = $3
 `
 
 type UpdateCustomerSubAndTierParams struct {
 	StripeSubscriptionID pgtype.Text
-	TierID               TierID
+	Tier                 Tier
 	ID                   int32
 }
 
 func (q *Queries) UpdateCustomerSubAndTier(ctx context.Context, arg UpdateCustomerSubAndTierParams) error {
-	_, err := q.db.Exec(ctx, updateCustomerSubAndTier, arg.StripeSubscriptionID, arg.TierID, arg.ID)
+	_, err := q.db.Exec(ctx, updateCustomerSubAndTier, arg.StripeSubscriptionID, arg.Tier, arg.ID)
 	return err
 }

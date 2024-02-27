@@ -19,7 +19,7 @@ func (payment *Payment) paymentRoutes() {
 
 	payment.base.GET("/subscription/create/:tierID", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
 		tierIDTemp := ctx.Param("tierID")
-		tierID := paymentmodels.TierID(tierIDTemp)
+		tierID := paymentmodels.Tier(tierIDTemp)
 		usertemp, _ := ctx.Get("user")
 		user := usertemp.(*authmodels.User)
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
@@ -56,9 +56,9 @@ func (payment *Payment) paymentRoutes() {
 		ctx.Redirect(302, "/user/wallet")
 	})
 
-	payment.base.GET("/subscription/change/:tierID", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
-		tierIDTemp := ctx.Param("tierID")
-		tierID := paymentmodels.TierID(tierIDTemp)
+	payment.base.GET("/subscription/change/:tier", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
+		tierTemp := ctx.Param("tier")
+		tier := paymentmodels.Tier(tierTemp)
 		usertemp, _ := ctx.Get("user")
 		user := usertemp.(*authmodels.User)
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
@@ -67,7 +67,7 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, errComm := payment.ChangeSubscriptionTier(&customer, tierID)
+		checkoutSession, errComm := payment.ChangeSubscriptionTier(&customer, tier)
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
