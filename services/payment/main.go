@@ -8,14 +8,16 @@ import (
 	"townwatch/services/payment/paymentmodels"
 
 	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/price"
+	"github.com/stripe/stripe-go/v76/product"
 	"github.com/stripe/stripe-go/v76/webhookendpoint"
 )
 
 type Payment struct {
-	Queries     *paymentmodels.Queries
-	base        *base.Base
-	auth        *auth.Auth
-	TierConfigs map[paymentmodels.TierID]TierConfig
+	Queries *paymentmodels.Queries
+	base    *base.Base
+	auth    *auth.Auth
+	// TierConfigs map[paymentmodels.TierID]TierConfig
 }
 
 type TierConfig struct {
@@ -32,10 +34,10 @@ func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 	queries := paymentmodels.New(base.Pool)
 
 	payment := Payment{
-		Queries:     queries,
-		base:        base,
-		auth:        auth,
-		TierConfigs: loadTierConfigs(),
+		Queries: queries,
+		base:    base,
+		auth:    auth,
+		// TierConfigs: loadTierConfigs(),
 	}
 	payment.loadStripe()
 	payment.registerPaymentRoutes()
@@ -80,11 +82,70 @@ func (payment *Payment) loadStripe() {
 }
 
 func (payment *Payment) loadStripeProduct() *stripe.Product {
-	// same as webhook enpoint
-	return nil
+	targetParams := &stripe.ProductParams{
+		Name: stripe.String("Premium"),
+	}
+	var targetProduct *stripe.Product
+
+	params := &stripe.ProductListParams{}
+	result := product.List(params)
+	for result.Next() {
+
+		productTemp := result.Current().(*stripe.Product)
+
+		if productTemp.Name == *targetParams.Name {
+			targetProduct = productTemp
+		} else {
+			params := &stripe.ProductParams{}
+			_, err := product.Del(productTemp.ID, params)
+			if err != nil {
+				log.Fatalln("Error: deleting webhook-endoint: %w", err)
+			}
+		}
+	}
+
+	if targetProduct == nil {
+		var err error
+		targetProduct, err = product.New(targetParams)
+		if err != nil {
+			log.Fatalln("Error: init stripe webhook events: %w", err)
+		}
+	}
+
+	return targetProduct
 }
 
 func (payment *Payment) loadStripePrices(product *stripe.Product) []*stripe.Price {
+
+	paramsTargetMonthly := &stripe.PriceParams{
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		Product:  &product.ID,
+		Recurring: &stripe.PriceRecurringParams{
+			Interval:      stripe.String(string(stripe.PriceRecurringIntervalMonth)),
+			IntervalCount: stripe.Int64(1),
+		},
+		UnitAmount: stripe.Int64(1000),
+		Metadata: map[string]string{
+			"tier": string(paymentmodels.TierIDT1),
+		},
+	}
+	paramsTargetYearly := &stripe.PriceParams{
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		Product:  &product.ID,
+		Recurring: &stripe.PriceRecurringParams{
+			Interval:      stripe.String(string(stripe.PriceRecurringIntervalYear)),
+			IntervalCount: stripe.Int64(1),
+		},
+		UnitAmount: stripe.Int64(10000),
+		Metadata: map[string]string{
+			"tier": string(paymentmodels.TierIDT2),
+		},
+	}
+
+	result, err := price.New(params)
+
+	params := &stripe.PriceListParams{}
+	result := price.List(params)
 
 }
 
@@ -112,7 +173,7 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 			targetWebhook = webhook
 		} else {
 			params := &stripe.WebhookEndpointParams{}
-			_, err := webhookendpoint.Del(payment.base.STRIPE_WEBHOOK_KEY, params)
+			_, err := webhookendpoint.Del(webhook.ID, params)
 			if err != nil {
 				log.Fatalln("Error: deleting webhook-endoint: %w", err)
 			}
