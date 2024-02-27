@@ -188,30 +188,6 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 	return targetWebhook
 }
 
-func areStringSlicesEqual(strs []string, ptrs []*string) bool {
-	if len(strs) != len(ptrs) {
-		return false
-	}
-	for i, str := range strs {
-		if ptrs[i] == nil || str != *ptrs[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func areStringMapsEqual(map1, map2 map[string]string) bool {
-	if len(map1) != len(map2) {
-		return false
-	}
-	for key, value := range map1 {
-		if val2, ok := map2[key]; !ok || value != val2 {
-			return false
-		}
-	}
-	return true
-}
-
 func IsASubsetOfB(a, b interface{}) bool {
 	// Obtain reflect value objects for both input structs
 	aVal := reflect.ValueOf(a)
@@ -226,7 +202,7 @@ func IsASubsetOfB(a, b interface{}) bool {
 		bField := bVal.FieldByName(aVal.Type().Field(i).Name)
 
 		// Check if the field exists in B and compare values; return false upon mismatch
-		if !bField.IsValid() || aField.Interface() != bField.Interface() {
+		if !bField.IsValid() || !reflect.DeepEqual(aField, bField) {
 			return false
 		}
 	}
