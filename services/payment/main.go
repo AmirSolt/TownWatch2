@@ -1,9 +1,11 @@
 package payment
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 	"townwatch/base"
 	"townwatch/services/auth"
 	"townwatch/services/payment/paymentmodels"
@@ -19,7 +21,6 @@ type Payment struct {
 	Prices  map[paymentmodels.Tier]*stripe.Price
 	base    *base.Base
 	auth    *auth.Auth
-	// TierConfigs map[paymentmodels.TierID]TierConfig
 }
 
 func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
@@ -49,20 +50,61 @@ func (payment *Payment) loadStripe() {
 
 }
 
+func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
+	targetParams := &stripe.WebhookEndpointParams{
+		EnabledEvents: []*string{
+			stripe.String("customer.created"),
+			stripe.String("customer.subscription.created"),
+			stripe.String("customer.subscription.deleted"),
+		},
+		URL:      stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
+		Metadata: map[string]string{},
+	}
+
+	var targetWebhook *stripe.WebhookEndpoint
+	params := &stripe.WebhookEndpointListParams{}
+	result := webhookendpoint.List(params)
+	for result.Next() {
+
+		webhook := result.Current().(*stripe.WebhookEndpoint)
+		if webhook.Metadata["params"] == HashStruct(targetParams) {
+			targetWebhook = webhook
+		} else {
+			params := &stripe.WebhookEndpointParams{}
+			_, err := webhookendpoint.Del(webhook.ID, params)
+			if err != nil {
+				log.Fatalln("Error: deleting webhook-endoint: %w", err)
+			}
+		}
+	}
+
+	if targetWebhook == nil {
+		var err error
+
+		targetParams.Metadata = map[string]string{
+			"params": HashStruct(targetParams),
+		}
+		targetWebhook, err = webhookendpoint.New(targetParams)
+		if err != nil {
+			log.Fatalln("Error: init stripe webhook events: %w", err)
+		}
+	}
+
+	return targetWebhook
+}
+
 func (payment *Payment) loadStripeProduct() *stripe.Product {
 	targetParams := &stripe.ProductParams{
 		Name: stripe.String("Premium"),
 	}
-	var targetProduct *stripe.Product
 
-	params := &stripe.ProductListParams{}
-	result := product.List(params)
+	var targetProduct *stripe.Product
+	result := product.List(&stripe.ProductListParams{})
 	for result.Next() {
 
 		productTemp := result.Current().(*stripe.Product)
 
-		// if productTemp.Name == *targetParams.Name {
-		if IsASubsetOfB(targetParams, productTemp) {
+		if productTemp.Metadata["params"] == HashStruct(targetParams) {
 			targetProduct = productTemp
 		} else {
 			params := &stripe.ProductParams{}
@@ -75,6 +117,10 @@ func (payment *Payment) loadStripeProduct() *stripe.Product {
 
 	if targetProduct == nil {
 		var err error
+
+		targetParams.Metadata = map[string]string{
+			"params": HashStruct(targetParams),
+		}
 		targetProduct, err = product.New(targetParams)
 		if err != nil {
 			log.Fatalln("Error: init stripe webhook events: %w", err)
@@ -125,15 +171,18 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 	for result.Next() {
 		priceTemp := result.Current().(*stripe.Price)
 		for tier, targetParams := range targetParamsMap {
-			if IsASubsetOfB(targetParams, priceTemp) {
+			if priceTemp.Metadata["params"] == HashStruct(targetParams) {
 				targetPriceMap[tier] = priceTemp
 			}
 		}
 	}
 
-	for tier, targetPrice := range targetPriceMap {
-		if targetPrice == nil {
-			result, err := price.New(targetParamsMap[tier])
+	for tier, targetParams := range targetParamsMap {
+		if targetPriceMap[tier] == nil {
+			targetParams.Metadata = map[string]string{
+				"params": HashStruct(targetParams),
+			}
+			result, err := price.New(targetParams)
 			if err != nil {
 				log.Fatalln("Error: init stripe price load: %w", err)
 			}
@@ -144,67 +193,26 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 	return targetPriceMap
 }
 
-func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
-	targetParams := &stripe.WebhookEndpointParams{
-		EnabledEvents: []*string{
-			stripe.String("customer.created"),
-			stripe.String("customer.subscription.created"),
-			stripe.String("customer.subscription.deleted"),
-		},
-		URL:      stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
-		Metadata: map[string]string{},
-	}
-	var targetWebhook *stripe.WebhookEndpoint
-
-	params := &stripe.WebhookEndpointListParams{}
-	result := webhookendpoint.List(params)
-	for result.Next() {
-
-		webhook := result.Current().(*stripe.WebhookEndpoint)
-
-		// if areStringSlicesEqual(webhook.EnabledEvents, targetParams.EnabledEvents) &&
-		// 	webhook.URL == *targetParams.URL &&
-		// 	areStringMapsEqual(webhook.Metadata, targetParams.Metadata) {
-		// 	targetWebhook = webhook
-		if IsASubsetOfB(targetParams, webhook) {
-			targetWebhook = webhook
-		} else {
-			params := &stripe.WebhookEndpointParams{}
-			_, err := webhookendpoint.Del(webhook.ID, params)
-			if err != nil {
-				log.Fatalln("Error: deleting webhook-endoint: %w", err)
-			}
-		}
+func HashStruct(s interface{}) string {
+	// Serialize the struct to JSON
+	jsonData, err := json.Marshal(s)
+	if err != nil {
+		log.Fatalf("Error occurred during marshaling. Error: %s", err.Error())
 	}
 
-	if targetWebhook == nil {
-		var err error
-		targetWebhook, err = webhookendpoint.New(targetParams)
-		if err != nil {
-			log.Fatalln("Error: init stripe webhook events: %w", err)
-		}
+	// Hash the JSON data using SHA-256
+	hasher := sha256.New()
+	hasher.Write(jsonData)
+	hash := hasher.Sum(nil)
+
+	// Encode the hash to a hexadecimal string
+	hexStr := hex.EncodeToString(hash)
+
+	// Truncate the hash string to 500 characters if necessary
+	// Though with SHA-256, it will never exceed 64 characters
+	if len(hexStr) > 500 {
+		hexStr = hexStr[:500]
 	}
 
-	return targetWebhook
-}
-
-func IsASubsetOfB(a, b interface{}) bool {
-	// Obtain reflect value objects for both input structs
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	// Loop through fields of struct A
-	for i := 0; i < aVal.NumField(); i++ {
-		// Get field from struct A
-		aField := aVal.Field(i)
-
-		// Attempt to find corresponding field in B by name
-		bField := bVal.FieldByName(aVal.Type().Field(i).Name)
-
-		// Check if the field exists in B and compare values; return false upon mismatch
-		if !bField.IsValid() || !reflect.DeepEqual(aField, bField) {
-			return false
-		}
-	}
-	return true
+	return hexStr
 }
