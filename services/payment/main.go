@@ -3,6 +3,7 @@ package payment
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"townwatch/base"
 	"townwatch/services/auth"
 	"townwatch/services/payment/paymentmodels"
@@ -93,7 +94,8 @@ func (payment *Payment) loadStripeProduct() *stripe.Product {
 
 		productTemp := result.Current().(*stripe.Product)
 
-		if productTemp.Name == *targetParams.Name {
+		// if productTemp.Name == *targetParams.Name {
+		if IsASubsetOfB(targetParams, productTemp) {
 			targetProduct = productTemp
 		} else {
 			params := &stripe.ProductParams{}
@@ -115,9 +117,9 @@ func (payment *Payment) loadStripeProduct() *stripe.Product {
 	return targetProduct
 }
 
-func (payment *Payment) loadStripePrices(product *stripe.Product) []*stripe.Price {
+func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmodels.TierID]*stripe.Price {
 
-	paramsTargetMonthly := &stripe.PriceParams{
+	targetParamsMonthly := &stripe.PriceParams{
 		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		Product:  &product.ID,
 		Recurring: &stripe.PriceRecurringParams{
@@ -129,7 +131,7 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) []*stripe.Pric
 			"tier": string(paymentmodels.TierIDT1),
 		},
 	}
-	paramsTargetYearly := &stripe.PriceParams{
+	targetParamsYearly := &stripe.PriceParams{
 		Currency: stripe.String(string(stripe.CurrencyUSD)),
 		Product:  &product.ID,
 		Recurring: &stripe.PriceRecurringParams{
@@ -142,11 +144,35 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) []*stripe.Pric
 		},
 	}
 
-	result, err := price.New(params)
+	targetParamsMap := map[paymentmodels.TierID]*stripe.PriceParams{
+		paymentmodels.TierIDT1: targetParamsMonthly,
+		paymentmodels.TierIDT2: targetParamsYearly,
+	}
+
+	targetPriceMap := map[paymentmodels.TierID]*stripe.Price{}
 
 	params := &stripe.PriceListParams{}
 	result := price.List(params)
+	for result.Next() {
+		priceTemp := result.Current().(*stripe.Price)
+		for tier, targetParams := range targetParamsMap {
+			if IsASubsetOfB(targetParams, priceTemp) {
+				targetPriceMap[tier] = priceTemp
+			}
+		}
+	}
 
+	for tier, targetPrice := range targetPriceMap {
+		if targetPrice == nil {
+			result, err := price.New(targetParamsMap[tier])
+			if err != nil {
+				log.Fatalln("Error: init stripe price load: %w", err)
+			}
+			targetPriceMap[tier] = result
+		}
+	}
+
+	return targetPriceMap
 }
 
 func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
@@ -167,9 +193,11 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 
 		webhook := result.Current().(*stripe.WebhookEndpoint)
 
-		if areStringSlicesEqual(webhook.EnabledEvents, targetParams.EnabledEvents) &&
-			webhook.URL == *targetParams.URL &&
-			areStringMapsEqual(webhook.Metadata, targetParams.Metadata) {
+		// if areStringSlicesEqual(webhook.EnabledEvents, targetParams.EnabledEvents) &&
+		// 	webhook.URL == *targetParams.URL &&
+		// 	areStringMapsEqual(webhook.Metadata, targetParams.Metadata) {
+		// 	targetWebhook = webhook
+		if IsASubsetOfB(targetParams, webhook) {
 			targetWebhook = webhook
 		} else {
 			params := &stripe.WebhookEndpointParams{}
@@ -209,6 +237,27 @@ func areStringMapsEqual(map1, map2 map[string]string) bool {
 	}
 	for key, value := range map1 {
 		if val2, ok := map2[key]; !ok || value != val2 {
+			return false
+		}
+	}
+	return true
+}
+
+func IsASubsetOfB(a, b interface{}) bool {
+	// Obtain reflect value objects for both input structs
+	aVal := reflect.ValueOf(a)
+	bVal := reflect.ValueOf(b)
+
+	// Loop through fields of struct A
+	for i := 0; i < aVal.NumField(); i++ {
+		// Get field from struct A
+		aField := aVal.Field(i)
+
+		// Attempt to find corresponding field in B by name
+		bField := bVal.FieldByName(aVal.Type().Field(i).Name)
+
+		// Check if the field exists in B and compare values; return false upon mismatch
+		if !bField.IsValid() || aField.Interface() != bField.Interface() {
 			return false
 		}
 	}
