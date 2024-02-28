@@ -144,7 +144,7 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 		},
 		UnitAmount: stripe.Int64(1000),
 		Metadata: map[string]string{
-			"tier": string(paymentmodels.Tier1),
+			"tier": fmt.Sprintf("%v", paymentmodels.Tier1),
 		},
 	}
 	targetParamsYearly := &stripe.PriceParams{
@@ -157,7 +157,7 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 		},
 		UnitAmount: stripe.Int64(10000),
 		Metadata: map[string]string{
-			"tier": string(paymentmodels.Tier2),
+			"tier": fmt.Sprintf("%v", paymentmodels.Tier2),
 		},
 	}
 

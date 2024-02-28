@@ -107,7 +107,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 		}
 
 		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
-			StripeSubscriptionID: pgtype.Text{String: subsc.ID},
+			StripeSubscriptionID: pgtype.Text{String: subsc.ID, Valid: true},
 			Tier:                 int32(paymentmodels.Tier(tier)),
 			ID:                   customer.ID,
 		})

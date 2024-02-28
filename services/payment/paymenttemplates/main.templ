@@ -7,7 +7,7 @@ import "fmt"
 templ  WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier paymentmodels.Tier, price *stripe.Price, prices  map[paymentmodels.Tier]*stripe.Price) {
 	<div>
 		<p>{ price.Nickname } </p>
-		<p>{ string(price.UnitAmount) }/{ string(price.Recurring.Interval) } </p>
+		<p>{ fmt.Sprintf("%v",price.UnitAmount) }/{ string(price.Recurring.Interval) } </p>
 		if paymentmodels.Tier(customer.Tier) == tier {
 			if subsc.CancelAtPeriodEnd {
 				<p>Auto: False</p>
@@ -18,17 +18,17 @@ templ  WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, 
 			<p><strike>Auto </strike> </p>
 		}
 		if  paymentmodels.Tier(customer.Tier) == tier {
-			<form action={ templ.SafeURL(fmt.Sprintf("/subscription/cancel/%v", tier)) } method="get">
-				<button type="submit">Cancel</button>
-			</form>
+			<a href={ templ.SafeURL(fmt.Sprintf("/subscription/cancel/%v", tier)) }>
+				Cancel
+			</a>
 		} else if paymentmodels.Tier(customer.Tier) > tier {
-			<form action={ templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier)) } method="get">
-				<button type="submit">Downgrade</button>
-			</form>
+			<a href={ templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier)) }>
+				Downgrade
+			</a>
 		} else {
-			<form action={ templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier)) } method="get">
-				<button type="submit">Upgrade</button>
-			</form>
+			<a href={ templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier)) }>
+				Upgrade
+			</a>
 		}
 	</div>
 }

@@ -45,9 +45,9 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, ti
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(string(price.UnitAmount))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", price.UnitAmount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 9, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 9, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -60,7 +60,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, ti
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(string(price.Recurring.Interval))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 9, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 9, Col: 78}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -89,7 +89,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, ti
 			}
 		}
 		if paymentmodels.Tier(customer.Tier) == tier {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -98,12 +98,12 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, ti
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"get\"><button type=\"submit\">Cancel</button></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Cancel\r</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else if paymentmodels.Tier(customer.Tier) > tier {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -112,12 +112,12 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, ti
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"get\"><button type=\"submit\">Downgrade</button></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Downgrade\r</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -126,7 +126,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, ti
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"get\"><button type=\"submit\">Upgrade</button></form>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Upgrade\r</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

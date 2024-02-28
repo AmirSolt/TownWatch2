@@ -14,21 +14,29 @@ func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier paymentmodels.
 	return payment.createCheckoutSession(c, tier)
 }
 func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.Subscription, *base.ErrorComm) {
-	// err := payment.CancelSubscription(c)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return payment.createCheckoutSession(c, tier)
+
+	fmt.Println("+++++++")
+	fmt.Printf("%+v", tier)
+	fmt.Println("+++++++")
+
+	subsc, errComm := payment.GetSubscription(c.StripeSubscriptionID.String)
+	if errComm != nil {
+		return nil, errComm
+	}
+
+	fmt.Println("+++++++")
+	fmt.Printf("%+v", subsc)
+	fmt.Println("+++++++")
 
 	params := &stripe.SubscriptionParams{
 		Items: []*stripe.SubscriptionItemsParams{
-			&stripe.SubscriptionItemsParams{
-				// ID:    stripe.String("{{SUB_ITEM_ID}}"),
+			{
+				ID:    stripe.String(subsc.Items.Data[0].ID),
 				Price: stripe.String(payment.Prices[tier].ID),
 			},
 		},
 	}
-	result, err := subscription.Update(c.StripeSubscriptionID.String, params)
+	result, err := subscription.Update(subsc.ID, params)
 
 	if err != nil {
 		eventId := sentry.CaptureException(err)
