@@ -181,9 +181,7 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmod
 
 	for tier, targetParams := range targetParamsMap {
 		if targetPriceMap[tier] == nil {
-			targetParams.Metadata = map[string]string{
-				"params": HashStruct(targetParams),
-			}
+			targetParams.Metadata["params"] = HashStruct(targetParams)
 			result, err := price.New(targetParams)
 			if err != nil {
 				log.Fatalln("Error: init stripe price load: %w", err)
