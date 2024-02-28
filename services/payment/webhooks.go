@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"townwatch/services/payment/paymentmodels"
 
 	"github.com/getsentry/sentry-go"
@@ -32,8 +33,7 @@ func (payment *Payment) HandleStripeWebhook(ctx *gin.Context) {
 	}
 
 	endpointSecret := payment.base.STRIPE_WEBHOOK_KEY
-	event, err := webhook.ConstructEvent(payload, ctx.Request.Header.Get("Stripe-Signature"),
-		endpointSecret)
+	event, err := webhook.ConstructEvent(payload, ctx.Request.Header.Get("Stripe-Signature"), endpointSecret)
 	if err != nil {
 		eventId := sentry.CaptureException(err)
 		ctx.String(http.StatusBadRequest, fmt.Errorf("error verifying webhook signature. EventID: %s", *eventId).Error())
@@ -99,13 +99,16 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
 		}
 
-		// get tier by price
-		// payment.TierConfigs subsc.Items.Data[0].Price.UnitAmount
-		tier := subsc.Items.Data[0].Price.Metadata["tier"]
+		tierStr := subsc.Items.Data[0].Price.Metadata["tier"]
+		tier, err := strconv.Atoi(tierStr)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
 
 		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 			StripeSubscriptionID: pgtype.Text{String: subsc.ID},
-			Tier:                 paymentmodels.Tier(tier),
+			Tier:                 int32(paymentmodels.Tier(tier)),
 			ID:                   customer.ID,
 		})
 		if errUpd != nil {
@@ -133,7 +136,7 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 		if customer.StripeSubscriptionID.String == subsc.ID {
 			errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
 				StripeSubscriptionID: pgtype.Text{String: "", Valid: false},
-				Tier:                 paymentmodels.Tier0,
+				Tier:                 int32(paymentmodels.Tier0),
 				ID:                   customer.ID,
 			})
 			if errUpd != nil {

@@ -12,8 +12,9 @@ import "bytes"
 
 import "townwatch/services/payment/paymentmodels"
 import "github.com/stripe/stripe-go/v76"
+import "fmt"
 
-func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, price *stripe.Price, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
+func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier paymentmodels.Tier, price *stripe.Price, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -33,7 +34,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(price.Nickname)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 7, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 8, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -46,7 +47,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(string(price.UnitAmount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 8, Col: 31}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 9, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -59,7 +60,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(string(price.Recurring.Interval))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 8, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 9, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -69,7 +70,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if string(customer.Tier) == price.Metadata["tier"] {
+		if paymentmodels.Tier(customer.Tier) == tier {
 			if subsc.CancelAtPeriodEnd {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p>Auto: False</p>")
 				if templ_7745c5c3_Err != nil {
@@ -87,12 +88,12 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 				return templ_7745c5c3_Err
 			}
 		}
-		if customer.Tier == paymentmodels.Tier(price.Metadata["tier"]) {
+		if paymentmodels.Tier(customer.Tier) == tier {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 templ.SafeURL = templ.SafeURL("/subscription/cancel/" + price.Metadata["tier"])
+			var templ_7745c5c3_Var5 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/cancel/%v", tier))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var5)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -101,12 +102,12 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else if customer.Tier > paymentmodels.Tier(price.Metadata["tier"]) {
+		} else if paymentmodels.Tier(customer.Tier) > tier {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL("/subscription/change/" + price.Metadata["tier"])
+			var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var6)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -120,7 +121,7 @@ func WalletTier(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL("/subscription/change/" + price.Metadata["tier"])
+			var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var7)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

@@ -3,6 +3,7 @@ package payment
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"townwatch/services/auth/authmodels"
 	"townwatch/services/payment/paymentmodels"
 
@@ -18,8 +19,14 @@ func (payment *Payment) registerPaymentRoutes() {
 func (payment *Payment) paymentRoutes() {
 
 	payment.base.GET("/subscription/create/:tierID", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
-		tierIDTemp := ctx.Param("tierID")
-		tierID := paymentmodels.Tier(tierIDTemp)
+		tierTmp := ctx.Param("tierID")
+		tier, err := strconv.Atoi(tierTmp)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("tier slug is incorrect (%s)", *eventId).Error())
+			return
+		}
+
 		usertemp, _ := ctx.Get("user")
 		user := usertemp.(*authmodels.User)
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
@@ -28,7 +35,7 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, errComm := payment.Subscribe(&customer, tierID)
+		checkoutSession, errComm := payment.Subscribe(&customer, paymentmodels.Tier(tier))
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
@@ -58,7 +65,12 @@ func (payment *Payment) paymentRoutes() {
 
 	payment.base.GET("/subscription/change/:tier", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
 		tierTemp := ctx.Param("tier")
-		tier := paymentmodels.Tier(tierTemp)
+		tier, err := strconv.Atoi(tierTemp)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("tier slug is incorrect (%s)", *eventId).Error())
+			return
+		}
 		usertemp, _ := ctx.Get("user")
 		user := usertemp.(*authmodels.User)
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
@@ -67,13 +79,15 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		checkoutSession, errComm := payment.ChangeSubscriptionTier(&customer, tier)
+		_, errComm := payment.ChangeSubscriptionTier(&customer, paymentmodels.Tier(tier))
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
-		ctx.Redirect(302, checkoutSession.URL)
+		// paymenttemplates.WalletTier(&customer, subsc, Tier(tier), payment.Prices[Tier(tier)], payment.Prices).Render(ctx, ctx.Writer)
+
+		ctx.Redirect(http.StatusPermanentRedirect, "/user/wallet")
 	})
 
 	payment.base.POST("/payment/webhook/events", func(ctx *gin.Context) {

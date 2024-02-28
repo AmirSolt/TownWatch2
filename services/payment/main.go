@@ -18,18 +18,10 @@ import (
 
 type Payment struct {
 	Queries *paymentmodels.Queries
-	Prices  map[Tier]*stripe.Price
+	Prices  map[paymentmodels.Tier]*stripe.Price
 	base    *base.Base
 	auth    *auth.Auth
 }
-
-type Tier int
-
-const (
-	Tier0 Tier = iota
-	Tier1 Tier = iota
-	Tier2 Tier = iota
-)
 
 func LoadPayment(base *base.Base, auth *auth.Auth) *Payment {
 
@@ -95,6 +87,8 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 		targetWebhook, err = webhookendpoint.New(targetParams)
 		if err != nil {
 			log.Fatalln("Error: init stripe webhook events: %w", err)
+		} else {
+			log.Fatalln(">>>> a new webhook was created, make sure to grab the secret")
 		}
 	}
 
@@ -138,7 +132,7 @@ func (payment *Payment) loadStripeProduct() *stripe.Product {
 	return targetProduct
 }
 
-func (payment *Payment) loadStripePrices(product *stripe.Product) map[Tier]*stripe.Price {
+func (payment *Payment) loadStripePrices(product *stripe.Product) map[paymentmodels.Tier]*stripe.Price {
 
 	targetParamsMonthly := &stripe.PriceParams{
 		Nickname: stripe.String("Monthly"),
@@ -150,7 +144,7 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[Tier]*stri
 		},
 		UnitAmount: stripe.Int64(1000),
 		Metadata: map[string]string{
-			"tier": string(Tier1),
+			"tier": string(paymentmodels.Tier1),
 		},
 	}
 	targetParamsYearly := &stripe.PriceParams{
@@ -163,16 +157,16 @@ func (payment *Payment) loadStripePrices(product *stripe.Product) map[Tier]*stri
 		},
 		UnitAmount: stripe.Int64(10000),
 		Metadata: map[string]string{
-			"tier": string(Tier2),
+			"tier": string(paymentmodels.Tier2),
 		},
 	}
 
-	targetParamsMap := map[Tier]*stripe.PriceParams{
-		Tier1: targetParamsMonthly,
-		Tier2: targetParamsYearly,
+	targetParamsMap := map[paymentmodels.Tier]*stripe.PriceParams{
+		paymentmodels.Tier1: targetParamsMonthly,
+		paymentmodels.Tier2: targetParamsYearly,
 	}
 
-	targetPriceMap := map[Tier]*stripe.Price{}
+	targetPriceMap := map[paymentmodels.Tier]*stripe.Price{}
 
 	params := &stripe.PriceListParams{}
 	result := price.List(params)

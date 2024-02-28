@@ -10,8 +10,8 @@ import "context"
 import "io"
 import "bytes"
 
-import "townwatch/services/payment/paymenttemplates"
 import "townwatch/services/payment/paymentmodels"
+import "townwatch/services/payment/paymenttemplates"
 import "github.com/stripe/stripe-go/v76"
 
 func WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
@@ -31,8 +31,8 @@ func WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for _, price := range prices {
-			templ_7745c5c3_Err = paymenttemplates.WalletTier(customer, subsc, price, prices).Render(ctx, templ_7745c5c3_Buffer)
+		for tier, price := range prices {
+			templ_7745c5c3_Err = paymenttemplates.WalletTier(customer, subsc, tier, price, prices).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

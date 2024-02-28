@@ -10,8 +10,9 @@ import "context"
 import "io"
 import "bytes"
 
-import "townwatch/services/payment/paymentmodels"
 import "townwatch/services/auth/authmodels"
+import "townwatch/services/payment/paymentmodels"
+import "fmt"
 
 func PricingPage(user *authmodels.User) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -35,7 +36,7 @@ func PricingPage(user *authmodels.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL("/subscription/create/" + paymentmodels.Tier2)
+			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/create/%v", paymentmodels.Tier2))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -68,7 +69,7 @@ func PricingPage(user *authmodels.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var4 templ.SafeURL = templ.SafeURL("/subscription/create/" + paymentmodels.Tier1)
+			var templ_7745c5c3_Var4 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/create/%v", paymentmodels.Tier1))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var4)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

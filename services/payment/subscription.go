@@ -10,10 +10,10 @@ import (
 	"github.com/stripe/stripe-go/v76/subscription"
 )
 
-func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier Tier) (*stripe.CheckoutSession, *base.ErrorComm) {
+func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.CheckoutSession, *base.ErrorComm) {
 	return payment.createCheckoutSession(c, tier)
 }
-func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier Tier) (*stripe.Subscription, *base.ErrorComm) {
+func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.Subscription, *base.ErrorComm) {
 	// err := payment.CancelSubscription(c)
 	// if err != nil {
 	// 	return nil, err
@@ -23,7 +23,7 @@ func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier T
 	params := &stripe.SubscriptionParams{
 		Items: []*stripe.SubscriptionItemsParams{
 			&stripe.SubscriptionItemsParams{
-				ID:    stripe.String("{{SUB_ITEM_ID}}"),
+				// ID:    stripe.String("{{SUB_ITEM_ID}}"),
 				Price: stripe.String(payment.Prices[tier].ID),
 			},
 		},
