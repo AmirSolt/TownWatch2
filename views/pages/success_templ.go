@@ -10,11 +10,7 @@ import "context"
 import "io"
 import "bytes"
 
-import "townwatch/services/payment/paymentmodels"
-import "townwatch/services/payment/paymenttemplates"
-import "github.com/stripe/stripe-go/v76"
-
-func WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
+func SuccessPage() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -27,11 +23,7 @@ func WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, pr
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Tiers\r</h1><p>tiers you can asd\r</p>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = paymenttemplates.Tiers(customer, subsc, prices).Render(ctx, templ_7745c5c3_Buffer)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Success\r</h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

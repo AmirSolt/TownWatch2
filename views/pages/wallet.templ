@@ -12,7 +12,5 @@ templ WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, p
 		tiers you can asd
 	</p>
 	// ================
-	for tier, price := range prices {
-		@paymenttemplates.WalletTier(customer, subsc, tier, price, prices)
-	}
+	@paymenttemplates.Tiers(customer, subsc, prices)
 }

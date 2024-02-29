@@ -54,6 +54,7 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 	targetParams := &stripe.WebhookEndpointParams{
 		EnabledEvents: []*string{
 			stripe.String("customer.created"),
+			stripe.String("customer.subscription.updated"),
 			stripe.String("customer.subscription.created"),
 			stripe.String("customer.subscription.deleted"),
 		},
@@ -88,7 +89,7 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 		if err != nil {
 			log.Fatalln("Error: init stripe webhook events: %w", err)
 		} else {
-			log.Fatalln(">>>> a new webhook was created, make sure to grab the secret")
+			log.Fatalln(">>>> a new webhook was created, change the .env webhook_secret: %v", targetWebhook.Secret)
 		}
 	}
 

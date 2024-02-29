@@ -120,6 +120,52 @@ func (payment *Payment) handleStripeEvents(ctx *gin.Context, event stripe.Event)
 	}
 
 	// =============================================
+
+	if event.Type == "customer.subscription.updated" {
+		subsc, err := getStripeSubscriptionFromObj(event.Data.Object)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
+
+		params := &stripe.CustomerParams{}
+		stripeCustomer, err := customer.Get(subsc.Customer.ID, params)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
+
+		fmt.Println("==================================")
+		fmt.Printf("\n>> stripeCustomer: %+v \n\n", stripeCustomer)
+		fmt.Println("==================================")
+
+		customer, errCust := payment.Queries.GetCustomerByEmail(ctx, stripeCustomer.Email)
+		if errCust != nil {
+			eventId := sentry.CaptureException(errCust)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
+
+		tierStr := subsc.Items.Data[0].Price.Metadata["tier"]
+		tier, err := strconv.Atoi(tierStr)
+		if err != nil {
+			eventId := sentry.CaptureException(err)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
+
+		errUpd := payment.Queries.UpdateCustomerSubAndTier(ctx, paymentmodels.UpdateCustomerSubAndTierParams{
+			StripeSubscriptionID: pgtype.Text{String: subsc.ID, Valid: true},
+			Tier:                 int32(paymentmodels.Tier(tier)),
+			ID:                   customer.ID,
+		})
+		if errUpd != nil {
+			eventId := sentry.CaptureException(errUpd)
+			return fmt.Errorf("error handling stripe event. EventID: %s", *eventId)
+		}
+
+		return nil
+	}
+
+	// =============================================
 	if event.Type == "customer.subscription.deleted" {
 		subsc, err := getStripeSubscriptionFromObj(event.Data.Object)
 		if err != nil {

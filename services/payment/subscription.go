@@ -15,18 +15,10 @@ func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier paymentmodels.
 }
 func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.Subscription, *base.ErrorComm) {
 
-	fmt.Println("+++++++")
-	fmt.Printf("%+v", tier)
-	fmt.Println("+++++++")
-
 	subsc, errComm := payment.GetSubscription(c.StripeSubscriptionID.String)
 	if errComm != nil {
 		return nil, errComm
 	}
-
-	fmt.Println("+++++++")
-	fmt.Printf("%+v", subsc)
-	fmt.Println("+++++++")
 
 	params := &stripe.SubscriptionParams{
 		Items: []*stripe.SubscriptionItemsParams{
@@ -36,7 +28,7 @@ func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier p
 			},
 		},
 	}
-	result, err := subscription.Update(subsc.ID, params)
+	subsc, err := subscription.Update(subsc.ID, params)
 
 	if err != nil {
 		eventId := sentry.CaptureException(err)
@@ -47,7 +39,7 @@ func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier p
 		}
 	}
 
-	return result, nil
+	return subsc, nil
 }
 func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.ErrorComm {
 	_, errSub := subscription.Cancel(c.StripeSubscriptionID.String, &stripe.SubscriptionCancelParams{})

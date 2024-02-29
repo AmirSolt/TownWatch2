@@ -26,7 +26,7 @@ func (payment *Payment) createCheckoutSession(c *paymentmodels.Customer, tier pa
 		Customer:      customerID,
 		Mode:          stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 		CustomerEmail: customerEmail,
-		SuccessURL:    stripe.String(fmt.Sprintf("%s/user/wallet", payment.base.DOMAIN)),
+		SuccessURL:    stripe.String(fmt.Sprintf("%s/payment/success", payment.base.DOMAIN)),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				Price:    &payment.Prices[tier].ID,
