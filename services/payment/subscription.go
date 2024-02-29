@@ -11,10 +11,10 @@ import (
 	"github.com/stripe/stripe-go/v76/subscription"
 )
 
-func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.CheckoutSession, *base.ErrorComm) {
+func (payment *Payment) subscribe(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.CheckoutSession, *base.ErrorComm) {
 	return payment.createCheckoutSession(c, tier)
 }
-func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.Subscription, *base.ErrorComm) {
+func (payment *Payment) changeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.Subscription, *base.ErrorComm) {
 
 	subsc, errComm := payment.GetSubscription(c)
 	if errComm != nil {
@@ -42,7 +42,7 @@ func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier p
 
 	return subsc, nil
 }
-func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.ErrorComm {
+func (payment *Payment) cancelSubscription(c *paymentmodels.Customer) *base.ErrorComm {
 
 	subsc, errComm := payment.GetSubscription(c)
 	if errComm != nil {
@@ -59,6 +59,26 @@ func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.Erro
 		}
 	}
 	return nil
+}
+
+func (payment *Payment) changeAutoPay(c *paymentmodels.Customer) (*stripe.Subscription, *base.ErrorComm) {
+
+	oldSubsc, errComm := payment.GetSubscription(c)
+	if errComm != nil {
+		return nil, errComm
+	}
+
+	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(!oldSubsc.CancelAtPeriodEnd)}
+	subsc, err := subscription.Update(oldSubsc.ID, params)
+	if err != nil {
+		eventId := sentry.CaptureException(err)
+		return nil, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to change autopay (%s)", *eventId),
+			DevMsg:  err,
+		}
+	}
+	return subsc, nil
 }
 
 func (payment *Payment) GetSubscription(c *paymentmodels.Customer) (*stripe.Subscription, *base.ErrorComm) {
@@ -80,15 +100,15 @@ func (payment *Payment) GetSubscription(c *paymentmodels.Customer) (*stripe.Subs
 		subsc = subscTemp
 		break
 	}
-	if subsc == nil {
-		err := fmt.Errorf("customer subscription was not found, stripe subscription search. search params: %+v", params)
-		eventId := sentry.CaptureException(err)
-		return nil, &base.ErrorComm{
-			EventID: eventId,
-			UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
-			DevMsg:  err,
-		}
-	}
+	// if subsc == nil {
+	// 	err := fmt.Errorf("customer subscription was not found, stripe subscription search. search params: %+v", params)
+	// 	eventId := sentry.CaptureException(err)
+	// 	return nil, &base.ErrorComm{
+	// 		EventID: eventId,
+	// 		UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+	// 		DevMsg:  err,
+	// 	}
+	// }
 
 	return subsc, nil
 }

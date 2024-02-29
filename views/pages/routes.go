@@ -55,12 +55,16 @@ func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payment *payment.Paym
 			return
 		}
 
-		subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
-		subscTier, errTier := strconv.Atoi(subscTierStr)
-		if errTier != nil {
-			eventId := sentry.CaptureException(errTier)
-			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
-			return
+		var subscTier int = 0
+		if subsc != nil {
+			subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
+			var errTier error
+			subscTier, errTier = strconv.Atoi(subscTierStr)
+			if errTier != nil {
+				eventId := sentry.CaptureException(errTier)
+				ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
+				return
+			}
 		}
 
 		Page(user, base.IS_PROD, WalletPage(paymentmodels.Tier(subscTier), subsc, payment.Prices)).Render(ctx, ctx.Writer)
