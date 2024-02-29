@@ -4,7 +4,7 @@ import "townwatch/services/payment/paymentmodels"
 import "townwatch/services/payment/paymenttemplates"
 import "github.com/stripe/stripe-go/v76"
 
-templ WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices  map[paymentmodels.Tier]*stripe.Price) {
+templ WalletPage(subscTier paymentmodels.Tier, subsc *stripe.Subscription, prices  map[paymentmodels.Tier]*stripe.Price) {
 	<h1>
 		Tiers
 	</h1>
@@ -12,5 +12,5 @@ templ WalletPage(customer *paymentmodels.Customer, subsc *stripe.Subscription, p
 		tiers you can asd
 	</p>
 	// ================
-	@paymenttemplates.Tiers(customer, subsc, prices)
+	@paymenttemplates.Tiers(subscTier, subsc, prices)
 }

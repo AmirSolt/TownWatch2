@@ -15,7 +15,7 @@ import "github.com/stripe/stripe-go/v76"
 import "fmt"
 import "sort"
 
-func Tiers(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
+func Tiers(subscTier paymentmodels.Tier, subsc *stripe.Subscription, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -29,7 +29,7 @@ func Tiers(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices 
 		}
 		ctx = templ.ClearChildren(ctx)
 		for _, tierInt := range sortedMapKeys(prices) {
-			templ_7745c5c3_Err = Tier(customer, subsc, paymentmodels.Tier(tierInt), prices[paymentmodels.Tier(tierInt)], prices).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Tier(subscTier, subsc, paymentmodels.Tier(tierInt), prices[paymentmodels.Tier(tierInt)]).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -41,7 +41,7 @@ func Tiers(customer *paymentmodels.Customer, subsc *stripe.Subscription, prices 
 	})
 }
 
-func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier paymentmodels.Tier, price *stripe.Price, prices map[paymentmodels.Tier]*stripe.Price) templ.Component {
+func Tier(subscTier paymentmodels.Tier, subsc *stripe.Subscription, currentTier paymentmodels.Tier, currentPrice *stripe.Price) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -59,9 +59,9 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(price.Nickname)
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(currentPrice.Nickname)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 15, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 15, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -72,9 +72,9 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", price.UnitAmount))
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%v", currentPrice.UnitAmount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 16, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 16, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -85,9 +85,9 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(string(price.Recurring.Interval))
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(string(currentPrice.Recurring.Interval))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 16, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 16, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -97,7 +97,7 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if paymentmodels.Tier(customer.Tier) == tier {
+		if subscTier == currentTier {
 			if subsc.CancelAtPeriodEnd {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p>Auto: False</p>")
 				if templ_7745c5c3_Err != nil {
@@ -115,12 +115,12 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 				return templ_7745c5c3_Err
 			}
 		}
-		if paymentmodels.Tier(customer.Tier) == tier {
+		if subscTier == currentTier {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/cancel/%v", tier))
+			var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/cancel/%v", currentTier))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var6)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -129,12 +129,12 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else if paymentmodels.Tier(customer.Tier) > tier {
+		} else if subscTier > currentTier {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier))
+			var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", currentTier))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var7)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -148,7 +148,7 @@ func Tier(customer *paymentmodels.Customer, subsc *stripe.Subscription, tier pay
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", tier))
+			var templ_7745c5c3_Var8 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", currentTier))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var8)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

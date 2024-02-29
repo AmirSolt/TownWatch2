@@ -7,6 +7,7 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/customer"
 	"github.com/stripe/stripe-go/v76/subscription"
 )
 
@@ -15,7 +16,7 @@ func (payment *Payment) Subscribe(c *paymentmodels.Customer, tier paymentmodels.
 }
 func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier paymentmodels.Tier) (*stripe.Subscription, *base.ErrorComm) {
 
-	subsc, errComm := payment.GetSubscription(c.StripeSubscriptionID.String)
+	subsc, errComm := payment.GetSubscription(c)
 	if errComm != nil {
 		return nil, errComm
 	}
@@ -42,7 +43,13 @@ func (payment *Payment) ChangeSubscriptionTier(c *paymentmodels.Customer, tier p
 	return subsc, nil
 }
 func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.ErrorComm {
-	_, errSub := subscription.Cancel(c.StripeSubscriptionID.String, &stripe.SubscriptionCancelParams{})
+
+	subsc, errComm := payment.GetSubscription(c)
+	if errComm != nil {
+		return errComm
+	}
+
+	_, errSub := subscription.Cancel(subsc.ID, &stripe.SubscriptionCancelParams{})
 	if errSub != nil {
 		eventId := sentry.CaptureException(errSub)
 		return &base.ErrorComm{
@@ -54,9 +61,31 @@ func (payment *Payment) CancelSubscription(c *paymentmodels.Customer) *base.Erro
 	return nil
 }
 
-func (payment *Payment) GetSubscription(subID string) (*stripe.Subscription, *base.ErrorComm) {
-	params := &stripe.SubscriptionParams{}
-	result, err := subscription.Get(subID, params)
+func (payment *Payment) GetSubscription(c *paymentmodels.Customer) (*stripe.Subscription, *base.ErrorComm) {
+
+	// params := &stripe.SubscriptionSearchParams{
+	// 	SearchParams: stripe.SearchParams{
+	// 		Query: fmt.Sprintf("customer:%v", customer.ID),
+	// 		Limit: stripe.Int64(1),
+	// 	},
+	// }
+	// result := subscription.Search(params)
+
+	// var subsc *stripe.Subscription
+	// subsc = result.Current().(*stripe.Subscription)
+	// if subsc == nil {
+	// 	err := fmt.Errorf("customer subscription was not found, stripe subscription search. search params: %+v",)
+	// 	eventId := sentry.CaptureException(err)
+	// 	return nil, &base.ErrorComm{
+	// 		EventID: eventId,
+	// 		UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+	// 		DevMsg:  err,
+	// 	}
+	// }
+
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	result, err := customer.Get(c.StripeCustomerID.String, params)
 	if err != nil {
 		eventId := sentry.CaptureException(err)
 		return nil, &base.ErrorComm{
@@ -66,5 +95,31 @@ func (payment *Payment) GetSubscription(subID string) (*stripe.Subscription, *ba
 		}
 	}
 
-	return result, nil
+	var subsc *stripe.Subscription
+	for _, subscTemp := range result.Subscriptions.Data {
+		subsc = subscTemp
+		break
+	}
+	if subsc == nil {
+		err := fmt.Errorf("customer subscription was not found, stripe subscription search. search params: %+v", params)
+		eventId := sentry.CaptureException(err)
+		return nil, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+			DevMsg:  err,
+		}
+	}
+
+	// params := &stripe.SubscriptionParams{}
+	// result, err := subscription.Get(subID, params)
+	// if err != nil {
+	// 	eventId := sentry.CaptureException(err)
+	// 	return nil, &base.ErrorComm{
+	// 		EventID: eventId,
+	// 		UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+	// 		DevMsg:  err,
+	// 	}
+	// }
+
+	return subsc, nil
 }

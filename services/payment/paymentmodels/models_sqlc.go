@@ -9,11 +9,9 @@ import (
 )
 
 type Customer struct {
-	ID                   int32
-	CreatedAt            pgtype.Timestamptz
-	Email                string
-	Tier                 int32
-	StripeCustomerID     pgtype.Text
-	StripeSubscriptionID pgtype.Text
-	UserID               pgtype.UUID
+	ID               int32
+	CreatedAt        pgtype.Timestamptz
+	Email            string
+	StripeCustomerID pgtype.Text
+	UserID           pgtype.UUID
 }

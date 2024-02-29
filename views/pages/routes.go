@@ -3,10 +3,12 @@ package pages
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"townwatch/base"
 	"townwatch/services/auth"
 	"townwatch/services/auth/authmodels"
 	"townwatch/services/payment"
+	"townwatch/services/payment/paymentmodels"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
@@ -47,13 +49,21 @@ func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payment *payment.Paym
 			return
 		}
 
-		subsc, errComm := payment.GetSubscription(customer.StripeSubscriptionID.String)
+		subsc, errComm := payment.GetSubscription(&customer)
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
-		Page(user, base.IS_PROD, WalletPage(&customer, subsc, payment.Prices)).Render(ctx, ctx.Writer)
+		subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
+		subscTier, errTier := strconv.Atoi(subscTierStr)
+		if errTier != nil {
+			eventId := sentry.CaptureException(errTier)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
+			return
+		}
+
+		Page(user, base.IS_PROD, WalletPage(paymentmodels.Tier(subscTier), subsc, payment.Prices)).Render(ctx, ctx.Writer)
 	})
 	// ================================
 

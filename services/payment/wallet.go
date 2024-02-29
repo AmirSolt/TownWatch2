@@ -32,8 +32,14 @@ func (payment *Payment) detachPaymentMethod(paymentMethodID string) *base.ErrorC
 	return nil
 }
 func (payment *Payment) changeAutoPay(c *paymentmodels.Customer, disable bool) *base.ErrorComm {
+
+	subsc, errComm := payment.GetSubscription(c)
+	if errComm != nil {
+		return errComm
+	}
+
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(disable)}
-	_, err := subscription.Update(c.StripeSubscriptionID.String, params)
+	_, err := subscription.Update(subsc.ID, params)
 	if err != nil {
 		eventId := sentry.CaptureException(err)
 		return &base.ErrorComm{

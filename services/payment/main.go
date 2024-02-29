@@ -54,9 +54,9 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 	targetParams := &stripe.WebhookEndpointParams{
 		EnabledEvents: []*string{
 			stripe.String("customer.created"),
-			stripe.String("customer.subscription.updated"),
-			stripe.String("customer.subscription.created"),
-			stripe.String("customer.subscription.deleted"),
+			// stripe.String("customer.subscription.updated"),
+			// stripe.String("customer.subscription.created"),
+			// stripe.String("customer.subscription.deleted"),
 		},
 		URL:      stripe.String(fmt.Sprintf("%s/payment/webhook/events", payment.base.DOMAIN)),
 		Metadata: map[string]string{},

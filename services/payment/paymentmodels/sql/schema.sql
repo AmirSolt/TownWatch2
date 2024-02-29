@@ -6,9 +6,9 @@ CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email TEXT NOT NULL UNIQUE,
-    tier INT NOT NULL DEFAULT 0,
+    -- tier INT NOT NULL DEFAULT 0,
     stripe_customer_id TEXT UNIQUE,
-    stripe_subscription_id TEXT UNIQUE,
+    -- stripe_subscription_id TEXT UNIQUE,
     user_id uuid NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

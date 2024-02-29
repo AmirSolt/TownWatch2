@@ -87,11 +87,15 @@ func (payment *Payment) paymentRoutes() {
 			return
 		}
 
-		paymenttemplates.Tiers(&customer, subsc, payment.Prices).Render(ctx, ctx.Writer)
+		subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
+		subscTier, errTier := strconv.Atoi(subscTierStr)
+		if errTier != nil {
+			eventId := sentry.CaptureException(errTier)
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
+			return
+		}
 
-		// paymenttemplates.WalletTier(&customer, subsc, Tier(tier), payment.Prices[Tier(tier)], payment.Prices).Render(ctx, ctx.Writer)
-
-		// ctx.Redirect(http.StatusPermanentRedirect, "/user/wallet")
+		paymenttemplates.Tiers(paymentmodels.Tier(subscTier), subsc, payment.Prices).Render(ctx, ctx.Writer)
 	})
 
 	payment.base.POST("/payment/webhook/events", func(ctx *gin.Context) {

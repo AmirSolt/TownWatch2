@@ -20,9 +20,3 @@ UPDATE customers
 SET stripe_customer_id = $1
 WHERE id = $2;
 
--- name: UpdateCustomerSubAndTier :exec
-UPDATE customers
-SET 
-stripe_subscription_id = $1,
-tier = $2
-WHERE id = $3;
