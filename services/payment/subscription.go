@@ -2,6 +2,7 @@ package payment
 
 import (
 	"fmt"
+	"strconv"
 	"townwatch/base"
 	"townwatch/services/payment/paymentmodels"
 
@@ -19,6 +20,15 @@ func (payment *Payment) changeSubscriptionTier(c *paymentmodels.Customer, tier p
 	subsc, errComm := payment.GetSubscription(c)
 	if errComm != nil {
 		return nil, errComm
+	}
+	if subsc == nil {
+		err := fmt.Errorf("customer subscription was not found, but requested in changeSubscriptionTier")
+		eventId := sentry.CaptureException(err)
+		return nil, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+			DevMsg:  err,
+		}
 	}
 
 	params := &stripe.SubscriptionParams{
@@ -67,6 +77,15 @@ func (payment *Payment) changeAutoPay(c *paymentmodels.Customer) (*stripe.Subscr
 	if errComm != nil {
 		return nil, errComm
 	}
+	if oldSubsc == nil {
+		err := fmt.Errorf("customer subscription was not found, but requested in changeAutoPay")
+		eventId := sentry.CaptureException(err)
+		return nil, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to find subscription (%s)", *eventId),
+			DevMsg:  err,
+		}
+	}
 
 	params := &stripe.SubscriptionParams{CancelAtPeriodEnd: stripe.Bool(!oldSubsc.CancelAtPeriodEnd)}
 	subsc, err := subscription.Update(oldSubsc.ID, params)
@@ -79,6 +98,23 @@ func (payment *Payment) changeAutoPay(c *paymentmodels.Customer) (*stripe.Subscr
 		}
 	}
 	return subsc, nil
+}
+
+func (payment *Payment) GetSubscriptionTier(subsc *stripe.Subscription) (paymentmodels.Tier, *base.ErrorComm) {
+	if subsc == nil {
+		return paymentmodels.Tier0, nil
+	}
+	subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
+	subscTierInt, errTier := strconv.Atoi(subscTierStr)
+	if errTier != nil {
+		eventId := sentry.CaptureException(errTier)
+		return paymentmodels.Tier0, &base.ErrorComm{
+			EventID: eventId,
+			UserMsg: fmt.Errorf("failed to find subscription tier (%s)", *eventId),
+			DevMsg:  errTier,
+		}
+	}
+	return paymentmodels.Tier(subscTierInt), nil
 }
 
 func (payment *Payment) GetSubscription(c *paymentmodels.Customer) (*stripe.Subscription, *base.ErrorComm) {

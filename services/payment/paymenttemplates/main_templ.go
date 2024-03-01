@@ -119,54 +119,29 @@ func Tier(subscTier paymentmodels.Tier, subsc *stripe.Subscription, currentTier 
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</form><form action=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if subscTier == currentTier {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL("/subscription/cancel")
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var6)))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"post\"><button type=\"submit\">Cancel\r</button></form>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else if subscTier > currentTier {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var7 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", currentTier))
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var7)))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"post\"><button type=\"submit\">Downgrade\r</button></form>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var8 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/subscription/change/%v", currentTier))
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var8)))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"post\"><button type=\"submit\">Upgrade\r</button></form>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
+		var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL(getTierButtonURL(subscTier, currentTier))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var6)))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"post\"><button type=\"submit\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(getTierButtonText(subscTier, currentTier))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `services\payment\paymenttemplates\main.templ`, Line: 32, Col: 47}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -185,4 +160,32 @@ func sortedMapKeys(prices map[paymentmodels.Tier]*stripe.Price) []int {
 	sort.Ints(keys)
 
 	return keys
+}
+
+func getTierButtonText(subscTier, currentTier paymentmodels.Tier) string {
+	if subscTier == paymentmodels.Tier0 {
+		return "Subscribe"
+	}
+	if subscTier == currentTier {
+		return "Cancel"
+	}
+	if subscTier > currentTier {
+		return "Downgrade"
+	}
+	if subscTier < currentTier {
+		return "Upgrade"
+	}
+
+	return "Subscribe (E)"
+}
+
+func getTierButtonURL(subscTier, currentTier paymentmodels.Tier) string {
+	if subscTier == paymentmodels.Tier0 {
+		return fmt.Sprintf("/subscription/create/%v", currentTier)
+	}
+
+	if subscTier == currentTier {
+		return "/subscription/cancel"
+	}
+	return fmt.Sprintf("/subscription/change/%v", currentTier)
 }

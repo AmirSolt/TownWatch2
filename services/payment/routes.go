@@ -61,7 +61,8 @@ func (payment *Payment) paymentRoutes() {
 			return
 		}
 
-		paymenttemplates.Tiers(paymentmodels.Tier0, nil, payment.Prices).Render(ctx, ctx.Writer)
+		errRender := paymenttemplates.Tiers(paymentmodels.Tier0, nil, payment.Prices).Render(ctx, ctx.Writer)
+		payment.base.HandleRouteRenderError(ctx, errRender)
 	})
 
 	payment.base.POST("/subscription/auto/change", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
@@ -71,30 +72,30 @@ func (payment *Payment) paymentRoutes() {
 		customer, err := payment.Queries.GetCustomerByUserID(ctx, user.ID)
 		if err != nil {
 			eventId := sentry.CaptureException(err)
-			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
+			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to find customer (%s)", *eventId).Error())
 			return
 		}
+
 		subsc, errComm := payment.changeAutoPay(&customer)
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
-		subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
-		subscTier, errTier := strconv.Atoi(subscTierStr)
-		if errTier != nil {
-			eventId := sentry.CaptureException(errTier)
-			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
+		tier, errComm := payment.GetSubscriptionTier(subsc)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
-		paymenttemplates.Tiers(paymentmodels.Tier(subscTier), subsc, payment.Prices).Render(ctx, ctx.Writer)
+		errRender := paymenttemplates.Tiers(tier, subsc, payment.Prices).Render(ctx, ctx.Writer)
+		payment.base.HandleRouteRenderError(ctx, errRender)
 	})
 
 	payment.base.POST("/subscription/change/:tier", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {
 
-		tierTemp := ctx.Param("tier")
-		tier, err := strconv.Atoi(tierTemp)
+		tierTargetStr := ctx.Param("tier")
+		tierTargetInt, err := strconv.Atoi(tierTargetStr)
 		if err != nil {
 			eventId := sentry.CaptureException(err)
 			ctx.String(http.StatusBadRequest, fmt.Errorf("tier slug is incorrect (%s)", *eventId).Error())
@@ -108,21 +109,19 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
 			return
 		}
-		subsc, errComm := payment.changeSubscriptionTier(&customer, paymentmodels.Tier(tier))
+		subsc, errComm := payment.changeSubscriptionTier(&customer, paymentmodels.Tier(tierTargetInt))
 		if errComm != nil {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
 
-		subscTierStr := subsc.Items.Data[0].Price.Metadata["tier"]
-		subscTier, errTier := strconv.Atoi(subscTierStr)
-		if errTier != nil {
-			eventId := sentry.CaptureException(errTier)
-			ctx.String(http.StatusBadRequest, fmt.Errorf("failed to create checkout session (%s)", *eventId).Error())
+		tier, errComm := payment.GetSubscriptionTier(subsc)
+		if errComm != nil {
+			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
-
-		paymenttemplates.Tiers(paymentmodels.Tier(subscTier), subsc, payment.Prices).Render(ctx, ctx.Writer)
+		errRender := paymenttemplates.Tiers(tier, subsc, payment.Prices).Render(ctx, ctx.Writer)
+		payment.base.HandleRouteRenderError(ctx, errRender)
 	})
 
 	payment.base.POST("/payment/webhook/events", func(ctx *gin.Context) {
