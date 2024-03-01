@@ -1,0 +1,80 @@
+package paymenttemplates
+
+import "townwatch/services/payment/paymentmodels"
+import "fmt"
+import "townwatch/services/auth/authmodels"
+
+templ PricingTier2(user *authmodels.User, subscTier paymentmodels.Tier) {
+	<div>
+		<h1>
+			12 Month Plan
+		</h1>
+		<hr/>
+		<h2>
+			$7.99/Month + tax
+		</h2>
+		<h1 id="save">
+			SAVE %50
+		</h1>
+		<p>
+			Total: $96 + tax
+		</p>
+		if subscTier==paymentmodels.Tier2 {
+			<div class="btn">
+				Current Plan
+			</div>
+		} else {
+			if user != nil {
+				<form action={ templ.SafeURL(getPricingButtonURL(subscTier, paymentmodels.Tier2)) } method="post">
+					<button type="submit">
+						Next
+					</button>
+				</form>
+			} else {
+				<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
+					Next
+				</a>
+			}
+		}
+	</div>
+}
+
+templ PricingTier1(user *authmodels.User, subscTier paymentmodels.Tier) {
+	<div>
+		<h1>
+			Monthly Plan
+		</h1>
+		<hr/>
+		<h2>
+			$15.99/Month + tax
+		</h2>
+		if subscTier==paymentmodels.Tier1 {
+			<div class="btn">
+				Current Plan
+			</div>
+		} else {
+			if user != nil {
+				<form action={ templ.SafeURL(getPricingButtonURL(subscTier, paymentmodels.Tier1)) } method="post">
+					<button type="submit">
+						Next
+					</button>
+				</form>
+			} else {
+				<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
+					Next
+				</a>
+			}
+		}
+	</div>
+}
+
+func getPricingButtonURL(subscTier, currentTier paymentmodels.Tier) string {
+	if subscTier == paymentmodels.Tier0 {
+		return fmt.Sprintf("/subscription/create/%v", currentTier)
+	}
+
+	if subscTier != currentTier {
+		return fmt.Sprintf("/subscription/change/%v", currentTier)
+	}
+	return "#"
+}

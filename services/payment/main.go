@@ -86,7 +86,7 @@ func (payment *Payment) loadStripeWebhook() *stripe.WebhookEndpoint {
 		if err != nil {
 			log.Fatalln("Error: init stripe webhook events: %w", err)
 		} else {
-			log.Fatalln("**** >>>>  a new webhook was created, change the .env webhook_secret: %v <<<< ***", targetWebhook.Secret)
+			log.Fatalf("\n**** >>>>  a new webhook was created, change the .env webhook_secret: %v <<<< ***\n", targetWebhook.Secret)
 		}
 	}
 

@@ -2,9 +2,9 @@ package pages
 
 import "townwatch/services/auth/authmodels"
 import "townwatch/services/payment/paymentmodels"
-import "fmt"
+import "townwatch/services/payment/paymenttemplates"
 
-templ PricingPage(user *authmodels.User) {
+templ PricingPage(user *authmodels.User,  currentTier paymentmodels.Tier) {
 	<h2>
 		Choose a subscription plan that works for you
 	</h2>
@@ -21,53 +21,7 @@ templ PricingPage(user *authmodels.User) {
 		<li>
 			Option 
 		</li>
+		@paymenttemplates.PricingTier2(user, currentTier)
+		@paymenttemplates.PricingTier1(user, currentTier)
 	</ul>
-	// ===============================
-	<div>
-		<h1>
-			12 Month Plan
-		</h1>
-		<hr/>
-		<h2>
-			$7.99/Month + tax
-		</h2>
-		<h1 id="save">
-			SAVE %50
-		</h1>
-		<p>
-			Total: $96 + tax
-		</p>
-		if user != nil {
-			<form action={ templ.SafeURL(fmt.Sprintf("/subscription/create/%v", paymentmodels.Tier2)) } method="post">
-				<button type="submit">
-					Next
-				</button>
-			</form>
-		} else {
-			<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
-				Next
-			</a>
-		}
-	</div>
-	// ===============================
-	<div>
-		<h1>
-			Monthly Plan
-		</h1>
-		<hr/>
-		<h2>
-			$15.99/Month + tax
-		</h2>
-		if user != nil {
-			<form action={ templ.SafeURL(fmt.Sprintf("/subscription/create/%v", paymentmodels.Tier1)) } method="post">
-				<button type="submit">
-					Next
-				</button>
-			</form>
-		} else {
-			<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
-				Next
-			</a>
-		}
-	</div>
 }

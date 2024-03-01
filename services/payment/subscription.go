@@ -119,6 +119,10 @@ func (payment *Payment) GetSubscriptionTier(subsc *stripe.Subscription) (payment
 
 func (payment *Payment) GetSubscription(c *paymentmodels.Customer) (*stripe.Subscription, *base.ErrorComm) {
 
+	if !c.StripeCustomerID.Valid {
+		return nil, nil
+	}
+
 	params := &stripe.CustomerParams{}
 	params.AddExpand("subscriptions")
 	result, err := customer.Get(c.StripeCustomerID.String, params)
