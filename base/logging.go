@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
-	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +27,7 @@ func (base *Base) loadLogging() {
 		log.Fatalf("sentry.Init: %s", err)
 	}
 
-	base.Engine.Use(sentrygin.New(sentrygin.Options{}))
+	base.Engine.Use(SentryGinNew(SentryGinOptions{}))
 
 }
 

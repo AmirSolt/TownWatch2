@@ -6,33 +6,31 @@ import "fmt"
 import "sort"
 
 templ Tiers(subscTier paymentmodels.Tier, subsc *stripe.Subscription, prices  map[paymentmodels.Tier]*stripe.Price) {
-	for _, tierInt := range sortedMapKeys(prices) {
-		@Tier(subscTier, subsc, paymentmodels.Tier(tierInt), prices[paymentmodels.Tier(tierInt)])
-	}
+	<div id="tiers-container">
+		for _, tierInt := range sortedMapKeys(prices) {
+			@Tier(subscTier, subsc, paymentmodels.Tier(tierInt), prices[paymentmodels.Tier(tierInt)])
+		}
+	</div>
 }
 
 templ  Tier(subscTier paymentmodels.Tier, subsc *stripe.Subscription, currentTier paymentmodels.Tier, currentPrice *stripe.Price) {
 	<div>
 		<p>{ currentPrice.Nickname } </p>
 		<p>{ fmt.Sprintf("%v",currentPrice.UnitAmount) }/{ string(currentPrice.Recurring.Interval) } </p>
-		<form>
-			if subsc!=nil && subscTier == currentTier {
-				<label for="auto">Auto Pay:</label>
-				if subsc.CancelAtPeriodEnd {
-					<input type="checkbox" id="auto" name="auto"/>
-				} else {
-					<input type="checkbox" id="auto" name="auto" checked/>
-				}
+		if subsc!=nil && subscTier == currentTier {
+			<label for="auto">Auto Pay:</label>
+			if subsc.CancelAtPeriodEnd {
+				<input type="checkbox" id="auto" name="auto" hx-post={ "/subscription/auto/change" } hx-swap="outerHTML" hx-target="#tiers-container" data-loading-disable/>
 			} else {
-				<label for="auto"><strike>Auto Pay:</strike> </label>
-				<input type="checkbox" id="auto" name="auto" disabled/>
+				<input type="checkbox" id="auto" name="auto" hx-post={ "/subscription/auto/change" } hx-swap="outerHTML" hx-target="#tiers-container" data-loading-disable checked/>
 			}
-		</form>
-		<form action={ templ.SafeURL(getTierButtonURL(subscTier, currentTier)) } method="post">
-			<button type="submit">
-				{ getTierButtonText(subscTier, currentTier) }
-			</button>
-		</form>
+		} else {
+			<label for="auto"><strike>Auto Pay:</strike> </label>
+			<input type="checkbox" id="auto" name="auto" disabled/>
+		}
+		<button type="button" hx-post={ getTierButtonURL(subscTier, currentTier) } hx-swap="outerHTML" hx-target="#tiers-container" data-loading-disable>
+			{ getTierButtonText(subscTier, currentTier) }
+		</button>
 	</div>
 }
 

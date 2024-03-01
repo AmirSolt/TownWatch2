@@ -15,6 +15,18 @@ import (
 
 func RegisterPagesRoutes(base *base.Base, auth *auth.Auth, payment *payment.Payment) {
 
+	base.Engine.GET("/error/:code", func(ctx *gin.Context) {
+		codeAny, exists := ctx.Get("code")
+		code := "500"
+		if exists {
+			code = codeAny.(string)
+		}
+
+		errRender := PageNoLayout(ErrorPage(code)).Render(ctx, ctx.Writer)
+		base.HandleRouteRenderError(ctx, errRender)
+	})
+	// ================================
+
 	base.Engine.GET("/join", auth.RequireGuestMiddleware, func(ctx *gin.Context) {
 		errRender := PageNoLayout(JoinPage()).Render(ctx, ctx.Writer)
 		base.HandleRouteRenderError(ctx, errRender)
