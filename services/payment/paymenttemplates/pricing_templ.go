@@ -38,16 +38,15 @@ func PricingTier2(user *authmodels.User, subscTier paymentmodels.Tier) templ.Com
 			}
 		} else {
 			if user != nil {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL(getPricingButtonURL(subscTier, paymentmodels.Tier2))
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(getPricingButtonURL(subscTier, paymentmodels.Tier2)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"post\"><button type=\"submit\">Next\r</button></form>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Next\r</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -56,8 +55,8 @@ func PricingTier2(user *authmodels.User, subscTier paymentmodels.Tier) templ.Com
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var3 templ.SafeURL = templ.SafeURL("/join")
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
+				var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL("/join")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -86,9 +85,9 @@ func PricingTier1(user *authmodels.User, subscTier paymentmodels.Tier) templ.Com
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><h1>Monthly Plan\r</h1><hr><h2>$15.99/Month + tax\r</h2>")
@@ -102,16 +101,15 @@ func PricingTier1(user *authmodels.User, subscTier paymentmodels.Tier) templ.Com
 			}
 		} else {
 			if user != nil {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-post=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var5 templ.SafeURL = templ.SafeURL(getPricingButtonURL(subscTier, paymentmodels.Tier1))
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var5)))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(getPricingButtonURL(subscTier, paymentmodels.Tier1)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" method=\"post\"><button type=\"submit\">Next\r</button></form>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Next\r</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -120,8 +118,8 @@ func PricingTier1(user *authmodels.User, subscTier paymentmodels.Tier) templ.Com
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var6 templ.SafeURL = templ.SafeURL("/join")
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var6)))
+				var templ_7745c5c3_Var4 templ.SafeURL = templ.SafeURL("/join")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var4)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

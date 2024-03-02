@@ -54,6 +54,7 @@ func (auth *Auth) authRoutes() {
 
 	auth.base.Engine.GET("/join/signout", auth.RequireUserMiddleware, func(ctx *gin.Context) {
 		auth.Signout(ctx)
+
 		ctx.Redirect(http.StatusFound, "/")
 	})
 }
@@ -75,6 +76,7 @@ func (auth *Auth) authTestRoutes() {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
+
 		ctx.Redirect(http.StatusFound, "/")
 	})
 

@@ -20,21 +20,25 @@ import (
 const jwtExpirationDurationSeconds = 60 * 60 * 24 * 15 // 15 days
 
 type JWT struct {
-	ID  string `json:"id"`
-	IP  string `json:"ip"`
-	EXP int64  `json:"exp"`
+	ID string `json:"id"`
+	// IP  string `json:"ip"`
+	EXP int64 `json:"exp"`
 }
 
 func (auth *Auth) ValidateUser(ctx *gin.Context) (*authmodels.User, *base.ErrorComm) {
 	// get it from cookie
 	tokenString, err := ctx.Cookie("Authorization")
-	if tokenString == "" || err != nil {
+	if err != nil {
 		eventId := sentry.CaptureException(err)
 		return nil, &base.ErrorComm{
 			EventID: eventId,
 			UserMsg: fmt.Errorf("user validation failed (%s)", *eventId),
 			DevMsg:  err,
 		}
+	}
+
+	if tokenString == "" {
+		return nil, nil
 	}
 
 	// parse and validate token
@@ -65,8 +69,8 @@ func (auth *Auth) SetJWTCookie(ctx *gin.Context, user *authmodels.User) *base.Er
 	}
 
 	jwt := JWT{
-		ID:  uuid.String(),
-		IP:  ctx.ClientIP(),
+		ID: uuid.String(),
+		// IP:  ctx.ClientIP(),
 		EXP: time.Now().Add(time.Second * jwtExpirationDurationSeconds).Unix(),
 	}
 
@@ -101,15 +105,15 @@ func (auth *Auth) ValidateJWTByUser(ctx *gin.Context, jwt *JWT) (*authmodels.Use
 		}
 	}
 
-	if jwt.IP != ctx.ClientIP() {
-		err := fmt.Errorf("jwt IP mismatch. JWT.IP: %v | ctx.ClientIP(): %v", jwt.IP, ctx.ClientIP())
-		eventId := sentry.CaptureException(err)
-		return nil, &base.ErrorComm{
-			EventID: eventId,
-			UserMsg: fmt.Errorf("validation failed (%s)", *eventId),
-			DevMsg:  err,
-		}
-	}
+	// if jwt.IP != ctx.ClientIP() {
+	// 	err := fmt.Errorf("jwt IP mismatch. JWT.IP: %v | ctx.ClientIP(): %v", jwt.IP, ctx.ClientIP())
+	// 	eventId := sentry.CaptureException(err)
+	// 	return nil, &base.ErrorComm{
+	// 		EventID: eventId,
+	// 		UserMsg: fmt.Errorf("validation failed (%s)", *eventId),
+	// 		DevMsg:  err,
+	// 	}
+	// }
 
 	id, err := uuid.Parse(jwt.ID)
 	if err != nil {

@@ -27,7 +27,7 @@ func (base *Base) loadLogging() {
 		log.Fatalf("sentry.Init: %s", err)
 	}
 
-	base.Engine.Use(SentryGinNew(SentryGinOptions{}))
+	// base.Engine.Use(SentryGinNew(SentryGinOptions{}))
 
 }
 

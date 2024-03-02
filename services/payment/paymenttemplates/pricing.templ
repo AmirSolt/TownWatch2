@@ -25,11 +25,9 @@ templ PricingTier2(user *authmodels.User, subscTier paymentmodels.Tier) {
 			</div>
 		} else {
 			if user != nil {
-				<form action={ templ.SafeURL(getPricingButtonURL(subscTier, paymentmodels.Tier2)) } method="post">
-					<button type="submit">
-						Next
-					</button>
-				</form>
+				<button hx-post={ getPricingButtonURL(subscTier, paymentmodels.Tier2) }>
+					Next
+				</button>
 			} else {
 				<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
 					Next
@@ -54,11 +52,9 @@ templ PricingTier1(user *authmodels.User, subscTier paymentmodels.Tier) {
 			</div>
 		} else {
 			if user != nil {
-				<form action={ templ.SafeURL(getPricingButtonURL(subscTier, paymentmodels.Tier1)) } method="post">
-					<button type="submit">
-						Next
-					</button>
-				</form>
+				<button hx-post={ getPricingButtonURL(subscTier, paymentmodels.Tier1) }>
+					Next
+				</button>
 			} else {
 				<a href={ templ.SafeURL("/join") } class="btn btn-nrm">
 					Next

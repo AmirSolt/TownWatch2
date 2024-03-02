@@ -41,9 +41,8 @@ func (payment *Payment) paymentRoutes() {
 			ctx.String(http.StatusBadRequest, errComm.UserMsg.Error())
 			return
 		}
-
-		ctx.Redirect(302, checkoutSession.URL)
-
+		ctx.Header("HX-Redirect", checkoutSession.URL)
+		ctx.Status(200)
 	})
 
 	payment.base.POST("/subscription/cancel", payment.auth.RequireUserMiddleware, func(ctx *gin.Context) {

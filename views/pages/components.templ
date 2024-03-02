@@ -9,6 +9,7 @@ templ Page(user *authmodels.User, isProd bool, Comp templ.Component) {
 		@Head("Home")
 		<body>
 			@Header(user)
+			@spinner()
 			@Comp
 			@Footer(user, isProd)
 		</body>
@@ -20,18 +21,75 @@ templ PageNoLayout(Comp templ.Component) {
 	<html lang="en">
 		@Head("Home")
 		<body>
+			@spinner()
 			@Comp
 		</body>
 	</html>
 }
 
+templ spinner() {
+	<div id="spinner" class="my-indicator">
+		<div class="spinner-anim"></div>
+	</div>
+}
+
+templ spinnerStyles() {
+	<style>
+		.my-indicator{
+			opacity: 0;
+		}
+		.htmx-request .my-indicator{
+			opacity: 1;
+		}
+		.htmx-request.my-indicator{
+			opacity: 1;
+		}
+
+		#spinner{
+			border-radius: 10%;
+			align-items: center;
+			justify-content: center;
+			display: flex;
+			position: fixed;
+			top: 3%;
+			left: 50%;
+			z-index: 999;
+			width: 120px;
+			height: 120px;
+			background-color: rgba(239, 239, 239, 0.6);
+		}
+
+		.spinner-anim {
+			width: 25%;
+			height: 25%;
+			border-radius: 50%;
+			border: 5px solid rgb(10,132,255);
+			border-bottom-color: transparent;
+			animation: rotation 1s linear infinite;
+		}
+
+
+
+
+		@keyframes rotation {
+			0% {
+				transform: rotate(0deg);
+			}
+			100% {
+				transform: rotate(360deg);
+			}
+		} 
+
+	</style>
+}
+
 templ Head(title string) {
 	<head>
 		<script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-		<script src="https://unpkg.com/htmx.org/dist/ext/loading-states.js" defer></script>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>{ title }</title>
+		@spinnerStyles()
 	</head>
 }
 

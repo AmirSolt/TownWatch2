@@ -119,7 +119,7 @@ func Tier(subscTier paymentmodels.Tier, subsc *stripe.Subscription, currentTier 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\" hx-target=\"#tiers-container\" data-loading-disable>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\" hx-target=\"#tiers-container\" hx-indicator=\"#spinner\" hx-disabled-elt=\"this\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -132,7 +132,7 @@ func Tier(subscTier paymentmodels.Tier, subsc *stripe.Subscription, currentTier 
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\" hx-target=\"#tiers-container\" data-loading-disable checked>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\" hx-target=\"#tiers-container\" hx-indicator=\"#spinner\" hx-disabled-elt=\"this\" checked>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -151,7 +151,7 @@ func Tier(subscTier paymentmodels.Tier, subsc *stripe.Subscription, currentTier 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\" hx-target=\"#tiers-container\" data-loading-disable>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-swap=\"outerHTML\" hx-target=\"#tiers-container\" hx-indicator=\"#spinner\" hx-disabled-elt=\"this\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
